@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>三亚中科遥感信息产业园 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="三亚中科遥感信息产业园起步区 3D 沙盘：星宇空间、三亚太空科技馆（七星伴月）、海榆西线街景，日景 / 黄昏 / 夜景灯光切换。">
+<meta name="theme-color" content="#050b14">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;900&display=swap">
+<style>
+/* Layout: split hero (copy | live 3D sandbox with time-of-day + camera stations) → industry → 星宇空间 → 太空科技馆 → location.
+   Motif: the museum's Möbius ribbon — thin parallel light lines on deep space navy; cyan = remote-sensing signal, amber = window light. */
+:root{
+  --void:#050b14; --deck:#0a1626; --deck-2:#10223a; --rule:rgba(150,200,255,.13); --rule-2:rgba(150,200,255,.26);
+  --fg:#e8f1f8; --muted:#8fa4b8; --dim:#5f768c;
+  --signal:#62d6ff; --signal-ink:#03202b; --lamp:#ffbf6b; --leaf:#a9d64a; --alert:#ff6a5a;
+  --display:"Noto Serif SC","Songti SC","STSong",serif;
+  --body:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:14px; --wrap:1280px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--void);color:var(--fg);font:15px/1.75 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--void)}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:6px}
+h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
+p{margin:0}
+.wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(clamp(16px,4vw,40px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,4vw,40px),env(safe-area-inset-right,0px))}
+.kicker{display:inline-flex;align-items:center;gap:10px;font:500 11.5px/1 var(--mono);letter-spacing:.16em;color:var(--signal);text-transform:uppercase}
+.kicker::before{content:"";width:26px;height:10px;background:repeating-linear-gradient(180deg,var(--signal) 0 1px,transparent 1px 3px);opacity:.85;border-radius:5px 5px 5px 5px/5px 5px 5px 5px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--void) 82%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--rule)}
+.top .wrap{display:flex;align-items:center;gap:20px;min-height:60px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 15px/1.2 var(--body);letter-spacing:.02em;white-space:nowrap}
+.brand svg{flex:none}
+.brand small{display:block;font:400 10px/1.2 var(--mono);color:var(--muted);letter-spacing:.14em}
+.nav{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{padding:6px 12px;border-radius:999px;text-decoration:none;color:var(--muted);font-size:13.5px;white-space:nowrap}
+.nav a:hover{color:var(--fg);background:var(--deck-2)}
+@media (max-width:760px){.nav{display:none}}
+
+/* hero */
+.hero{padding-block:clamp(20px,3vw,36px) clamp(40px,6vw,72px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:clamp(20px,3vw,36px);align-items:stretch}
+@media (max-width:1060px){.hero-grid{grid-template-columns:1fr}}
+.copy{display:flex;flex-direction:column;gap:18px;min-width:0;padding-top:8px}
+.copy h1{font:900 clamp(30px,3.6vw,44px)/1.18 var(--display);letter-spacing:.01em}
+.copy h1 em{font-style:normal;color:var(--signal)}
+.copy .lede{color:var(--muted);font-size:15px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;margin-top:4px}
+.fact{background:var(--void);padding:14px 16px;min-width:0}
+.fact b{display:block;font:500 22px/1.15 var(--mono);font-variant-numeric:tabular-nums;color:var(--fg)}
+.fact b small{font-size:12px;color:var(--muted);margin-left:2px}
+.fact span{font-size:12.5px;color:var(--muted)}
+.cta-row{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:1px solid var(--rule-2);background:transparent;text-decoration:none;font-size:14px}
+.btn:hover{border-color:var(--signal);color:var(--signal)}
+.btn.primary{background:var(--signal);color:var(--signal-ink);border-color:var(--signal);font-weight:700}
+.btn.primary:hover{background:#8fe3ff;color:var(--signal-ink)}
+
+/* stage */
+.stage{position:relative;min-width:0;height:clamp(460px,76vh,800px);border-radius:18px;overflow:hidden;background:#09121e;border:1px solid var(--rule);isolation:isolate}
+/* 电脑：横屏宽幅沙盘；手机：竖屏沙盘 */
+@media (min-width:1061px){.stage{aspect-ratio:auto}}
+@media (max-width:1060px) and (orientation:landscape){.stage{height:clamp(380px,80vh,640px)}}
+@media (max-width:1060px) and (orientation:portrait){.stage{height:auto;aspect-ratio:3/4.4;max-height:calc(100svh - 150px);width:100%}
+  .hero-grid .stage{order:-1}.copy{padding-top:0}
+  .ui.tl{flex-direction:column;align-items:flex-start;gap:8px}
+  .seg.views{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}.seg.views::-webkit-scrollbar{display:none}
+  .caption{bottom:56px}.tag.minor{display:none}}
+.rotate-tip{display:none}
+@media (orientation:landscape) and (max-height:500px) and (pointer:coarse){.rotate-tip{display:flex;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(5,11,20,.94);color:var(--fg);font-size:15px;text-align:center;padding:24px}
+  .rotate-tip button{border:1px solid var(--rule-2);background:transparent;border-radius:999px;padding:6px 16px;font-size:13px}}
+.rotate-tip[hidden]{display:none!important}
+.stage:fullscreen{border-radius:0;height:100%}
+#gl{position:absolute;inset:0}
+#gl canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.loading{position:absolute;inset:0;display:grid;place-items:center;background:#060d18;z-index:6;transition:opacity .8s}
+.loading.done{opacity:0;pointer-events:none}
+.loading div{display:grid;justify-items:center;gap:14px;color:var(--muted);font:12px/1.4 var(--mono);letter-spacing:.12em}
+.loading svg{animation:spin 3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ui{position:absolute;z-index:4;display:flex;gap:6px;flex-wrap:wrap}
+.ui.tl{top:12px;left:12px;right:12px;justify-content:space-between;pointer-events:none}
+.ui.tl>*{pointer-events:auto}
+.ui.bl{bottom:12px;left:12px}
+.seg{display:flex;padding:3px;gap:2px;border-radius:999px;background:rgba(5,11,20,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--rule-2);flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:999px;font-size:13px;color:#c3d3e0;white-space:nowrap}
+.seg button:hover{color:#fff}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--void);font-weight:700}
+.seg.time button[aria-pressed="true"][data-mode="night"]{background:var(--signal);color:var(--signal-ink)}
+.seg.time button[aria-pressed="true"][data-mode="dusk"]{background:var(--lamp);color:#2a1700}
+.hint{position:absolute;right:14px;bottom:14px;z-index:4;font:11px/1.4 var(--mono);color:rgba(220,235,245,.62);letter-spacing:.06em;text-align:right;pointer-events:none}
+@media (max-width:640px){.hint{display:none}.seg button{padding:5px 9px;font-size:12px}}
+.labels{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.tag{position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;border:0;background:none;padding:0 0 26px;display:flex;flex-direction:column;align-items:center;will-change:transform;transition:opacity .3s}
+.tag::after{content:"";position:absolute;bottom:0;left:50%;width:1px;height:26px;background:linear-gradient(var(--tc,#62d6ff),transparent)}
+.tag span{display:block;padding:5px 11px;border-radius:6px;background:rgba(5,11,20,.72);border:1px solid color-mix(in srgb,var(--tc,#62d6ff) 60%,transparent);font-size:12.5px;font-weight:700;white-space:nowrap;color:#fff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tag small{display:block;font:400 10px/1.3 var(--mono);color:rgba(220,235,245,.7);letter-spacing:.06em;margin-top:2px}
+.tag:hover span{background:rgba(10,25,45,.92)}
+.tag.minor span{font-weight:500;font-size:11.5px;padding:3px 8px}
+.tag.hide{opacity:0;pointer-events:none}
+.caption{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);z-index:5;width:min(560px,calc(100% - 32px));padding:14px 18px;border-radius:12px;background:rgba(5,11,20,.78);border:1px solid var(--rule-2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.caption .k{font:500 11px/1 var(--mono);color:var(--signal);letter-spacing:.14em}
+.caption h3{font:700 18px/1.4 var(--display);margin-top:6px}
+.caption p{font-size:13.5px;color:#c6d4e0;margin-top:4px}
+.caption .bar{height:2px;background:var(--rule);border-radius:2px;margin-top:10px;overflow:hidden}
+.caption .bar i{display:block;height:100%;width:0;background:var(--signal)}
+.caption .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.caption .row button{border:0;background:none;color:var(--muted);font-size:12.5px;padding:2px 0}
+.caption .row button:hover{color:var(--fg)}
+.ui .icon-btn{display:inline-flex;align-items:center;gap:6px}
+
+/* sections */
+.block{padding-block:clamp(56px,8vw,104px);border-top:1px solid var(--rule)}
+.head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px 48px;align-items:end;margin-bottom:clamp(28px,4vw,48px)}
+@media (max-width:860px){.head{grid-template-columns:1fr}}
+.head h2{font:900 clamp(26px,3.4vw,40px)/1.2 var(--display);margin-top:12px}
+.head p{color:var(--muted);max-width:60ch}
+
+.industry{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+@media (max-width:980px){.industry{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.industry{grid-template-columns:1fr}}
+.ind{background:var(--void);padding:24px 22px 26px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ind .code{font:500 11px/1 var(--mono);color:var(--dim);letter-spacing:.12em}
+.ind h3{font:700 18px/1.35 var(--body)}
+.ind p{font-size:13.5px;color:var(--muted)}
+.ind svg{color:var(--signal)}
+.timeline{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:28px;font-size:13.5px;color:var(--muted)}
+.timeline b{color:var(--fg);font:500 13.5px var(--mono);margin-right:8px}
+
+.split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4vw,56px);align-items:start}
+@media (max-width:920px){.split{grid-template-columns:1fr}}
+.spec{border-top:1px solid var(--rule-2)}
+.spec div{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.spec dt{color:var(--muted);font-size:13.5px}
+.spec dd{margin:0;font-size:14.5px}
+.spec dd .n{font:500 15px var(--mono);font-variant-numeric:tabular-nums}
+.points{display:grid;gap:14px;margin:26px 0 0;padding:0;list-style:none}
+.points li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;font-size:14px;color:#c9d6e2}
+.points li::before{content:"";width:14px;height:14px;margin-top:5px;border:1px solid var(--signal);border-radius:50%;box-shadow:inset 0 0 0 3px var(--void),inset 0 0 0 7px var(--signal)}
+.points b{color:var(--fg)}
+.view3d{display:inline-flex;margin-top:24px}
+
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.gallery button{position:relative;border:0;padding:0;border-radius:12px;overflow:hidden;background:var(--deck);aspect-ratio:16/9;max-width:100%}
+.gallery button.wide{grid-column:1/-1;aspect-ratio:21/9}
+.gallery img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s}
+.gallery button:hover img{transform:scale(1.03)}
+.gallery figcaption{position:absolute;left:10px;bottom:10px;padding:4px 10px;border-radius:6px;background:rgba(5,11,20,.72);font-size:12px;color:#dbe6ef}
+
+.concept{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:28px}
+@media (max-width:760px){.concept{grid-template-columns:1fr}}
+.concept div{padding:18px 18px 20px;border:1px solid var(--rule);border-radius:12px;background:var(--deck);min-width:0}
+.concept b{display:block;font:700 15.5px/1.4 var(--body);margin-bottom:6px}
+.concept p{font-size:13.5px;color:var(--muted)}
+
+.mapbox{border:1px solid var(--rule);border-radius:var(--r);background:var(--deck);overflow-x:auto}
+.mapbox svg{display:block;width:100%;min-width:560px;height:auto}
+.loc-list{display:grid;gap:0;margin-top:4px}
+.loc-list div{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:12px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:14px}
+.loc-list dt{color:var(--muted)}
+.loc-list dd{margin:0}
+
+footer{border-top:1px solid var(--rule);padding-block:28px 40px;color:var(--dim);font-size:12.5px}
+body{padding-bottom:calc(52px + env(safe-area-inset-bottom,0px))}
+.contact-bar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 14px;min-height:52px;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(5,11,20,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--rule-2);font-size:13.5px;text-align:center}
+.contact-bar .svc{color:#c9d6e2}
+.contact-bar a{font:500 15px var(--mono);color:var(--signal);text-decoration:none;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.contact-bar button{border:1px solid var(--rule-2);background:transparent;border-radius:999px;padding:2px 10px;font-size:12px;color:var(--muted)}
+@media (max-width:520px){.contact-bar{font-size:12px;gap:2px 10px}.contact-bar a{font-size:14px}}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+
+dialog{border:0;padding:0;background:transparent;max-width:min(1200px,94vw);max-height:90vh}
+dialog::backdrop{background:rgba(2,6,12,.88)}
+dialog img{display:block;max-width:100%;max-height:80vh;border-radius:10px}
+dialog p{color:#dbe6ef;font-size:13.5px;margin-top:10px;display:flex;justify-content:space-between;gap:16px}
+dialog button{border:1px solid var(--rule-2);background:var(--deck);border-radius:999px;padding:4px 14px;font-size:13px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="三亚中科遥感信息产业园">
+      <svg width="34" height="20" viewBox="0 0 34 20" fill="none" aria-hidden="true"><path d="M17 10c-4-5-7.5-7-10.5-7S1 5.5 1 10s2.5 7 5.5 7S13 15 17 10s7.5-7 10.5-7S33 5.5 33 10s-2.5 7-5.5 7S21 15 17 10Z" stroke="#e8f1f8" stroke-width="1.4"/><circle cx="27.5" cy="10" r="3.4" fill="#62d6ff"/></svg>
+      <span>三亚中科遥感信息产业园<small>SANYA AEROSPACE INFO PARK</small></span>
+    </a>
+    <nav class="nav" aria-label="页面导航">
+      <a href="#sandbox">3D 沙盘</a><a href="#industry">产业方向</a><a href="#xingyu">星宇空间</a><a href="#museum">太空科技馆</a><a href="#location">区位</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero" id="sandbox">
+  <div class="wrap hero-grid">
+    <div class="copy">
+      <span class="kicker">起步区 · 3D 沙盘</span>
+      <h1>三亚中科遥感<br>信息产业园 <em>3D</em></h1>
+      <p class="lede">中国科学院空天信息研究院、海南省科技厅与三亚市政府共建的省级高新技术产业园。起步区西侧为四栋板式高层组成的「星宇空间」，东侧是以「七星伴月」为构思的三亚太空科技馆，南临海榆西线，距海约 500 米。</p>
+      <div class="facts">
+        <div class="fact"><b>22.7<small>亩</small></b><span>星宇空间占地</span></div>
+        <div class="fact"><b>6.5<small>万㎡</small></b><span>星宇空间总建筑面积</span></div>
+        <div class="fact"><b>300<small>+</small></b><span>入园企业</span></div>
+        <div class="fact"><b>500<small>m</small></b><span>距海岸线</span></div>
+      </div>
+      <div class="cta-row">
+        <button class="btn primary" type="button" id="tourBtn2">开始漫游</button>
+        <a class="btn" href="#museum">太空科技馆</a>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div id="gl"></div>
+      <div class="labels" id="labels"></div>
+      <div class="ui tl">
+        <div class="seg views" role="group" aria-label="视角">
+          <button type="button" data-view="overview" aria-pressed="true">全景沙盘</button>
+          <button type="button" data-view="xingyu" aria-pressed="false">星宇空间</button>
+          <button type="button" data-view="museum" aria-pressed="false">太空科技馆</button>
+          <button type="button" data-view="street" aria-pressed="false">海榆西线街景</button>
+          <button type="button" data-view="plaza" aria-pressed="false">科技馆广场</button>
+        </div>
+        <div class="seg time" role="group" aria-label="时段灯光">
+          <button type="button" data-mode="day" aria-pressed="false">日景</button>
+          <button type="button" data-mode="dusk" aria-pressed="true">黄昏</button>
+          <button type="button" data-mode="night" aria-pressed="false">夜景</button>
+        </div>
+      </div>
+      <div class="ui bl">
+        <div class="seg">
+          <button type="button" id="tourBtn" class="icon-btn" aria-pressed="false">▶ 漫游</button>
+          <button type="button" id="rotBtn" aria-pressed="false">自动环绕</button>
+          <button type="button" id="fsBtn">全屏</button>
+        </div>
+      </div>
+      <div class="hint">拖动旋转 · 滚轮/双指缩放 · 右键平移<br>示意建模，依据项目效果图</div>
+      <div class="caption" id="caption" hidden>
+        <div class="k" id="capK">01 / 06</div>
+        <h3 id="capT"></h3>
+        <p id="capP"></p>
+        <div class="bar"><i id="capBar"></i></div>
+        <div class="row"><span class="kicker" style="font-size:10px" id="capMode"></span><button type="button" id="skipBtn">退出漫游 ✕</button></div>
+      </div>
+      <div class="loading" id="loading"><div>
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><circle cx="28" cy="28" r="24" stroke="rgba(98,214,255,.25)" stroke-width="1.5"/><path d="M28 4a24 24 0 0 1 24 24" stroke="#62d6ff" stroke-width="1.5"/><circle cx="52" cy="28" r="3" fill="#62d6ff"/></svg>
+        <span id="loadTxt">正在搭建产业园…</span>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="industry">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="kicker">产业方向</span><h2>从卫星研制到遥感应用的完整链条</h2></div>
+      <p>依托中国科学院空天信息研究院的专业能力与人才优势，园区汇聚了覆盖空天信息多个方向的科研团队与企业，现有入园企业 300 余家。</p>
+    </div>
+    <div class="industry">
+      <div class="ind">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="13" y="13" width="8" height="8"/><path d="M3 11h8v12H3zM23 11h8v12h-8zM11 17h2M21 17h2M17 13V8M15 6h4"/></svg>
+        <span class="code">SEG-01</span><h3>微小卫星研制</h3><p>小型化、低成本卫星平台与载荷的研制、总装与测试。</p>
+      </div>
+      <div class="ind">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="17" cy="15" r="7"/><circle cx="17" cy="15" r="2.5"/><path d="M12 26h10M17 22v4M6 8l4 3M28 8l-4 3"/></svg>
+        <span class="code">SEG-02</span><h3>航空航天遥感器研发</h3><p>光学、雷达等航空与航天遥感器的设计、研发与定标。</p>
+      </div>
+      <div class="ind">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M8 25a12 12 0 0 1 18 0"/><circle cx="17" cy="16" r="9"/><path d="M8 16h18M17 7c3 3 3 15 0 18M17 7c-3 3-3 15 0 18"/><path d="M14 30h6"/></svg>
+        <span class="code">SEG-03</span><h3>遥感数据接收处理</h3><p>依托三亚卫星地面站，接收、处理与分发多源卫星遥感数据。</p>
+      </div>
+      <div class="ind">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 26l8-8 6 5 12-13"/><path d="M4 30h26M24 10h6v6"/></svg>
+        <span class="code">SEG-04</span><h3>遥感技术应用</h3><p>面向国土、海洋、环境、城市管理等领域的空间数据服务。</p>
+      </div>
+    </div>
+    <div class="timeline">
+      <span><b>2015.08.07</b>产业园正式签约成立</span>
+      <span><b>300+</b>入园企业</span>
+      <span><b>3 方共建</b>中科院空天院 · 海南省科技厅 · 三亚市政府</span>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="xingyu">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="kicker">星宇空间</span><h2>宙中的「星座」</h2></div>
+      <p>四栋板式高层按功能需要做成高低不同、彼此相连的形态，像四个形状各异的星座交织在一起。北侧两栋较高，南侧两栋退台跌落，中间是贯穿南北的景观轴与泳池。</p>
+    </div>
+    <div class="split">
+      <div>
+        <dl class="spec">
+          <div><dt>占地面积</dt><dd><span class="n">22.7</span> 亩</dd></div>
+          <div><dt>总建筑面积</dt><dd>约 <span class="n">6.5</span> 万㎡</dd></div>
+          <div><dt>场地尺寸</dt><dd>东西约 <span class="n">205</span> m × 南北约 <span class="n">74</span> m</dd></div>
+          <div><dt>建筑组成</dt><dd>四栋板式高层 + 商业裙房</dd></div>
+          <div><dt>业态</dt><dd>众创商业 · 服务类商业 · 科研办公 · 人才配套</dd></div>
+        </dl>
+        <ul class="points">
+          <li><span><b>错落立面：</b>白色框架与玻璃逐层错位，形成「像素」般的立面肌理。</span></li>
+          <li><span><b>3 层退台区：</b>南楼逐层后退，退台上铺设屋顶花园。</span></li>
+          <li><span><b>底层架空：</b>首层架空与商业连廊，串联街道与中心景观。</span></li>
+          <li><span><b>绿色建筑：</b>Low-E 玻璃幕墙与屋面太阳能光伏。</span></li>
+        </ul>
+        <button class="btn view3d" type="button" data-goto="xingyu">在 3D 沙盘中查看 →</button>
+      </div>
+      <div class="gallery">
+        <button type="button" class="wide" data-full="img/s3.jpg" data-cap="星宇空间南立面：两组板楼退台跌落"><img src="img/s3.jpg" alt="星宇空间南立面效果图，两组白色板式高层" loading="lazy"><figcaption>南立面</figcaption></button>
+        <button type="button" data-full="img/s5.jpg" data-cap="底层商业连廊与架空空间"><img src="img/s5.jpg" alt="星宇空间底层商业与架空连廊效果图" loading="lazy"><figcaption>底层商业连廊</figcaption></button>
+        <button type="button" data-full="img/s6.jpg" data-cap="屋顶花园远眺山海与地面站雷达罩"><img src="img/s6.jpg" alt="屋顶花园远眺效果图" loading="lazy"><figcaption>屋顶花园</figcaption></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="museum">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="kicker">三亚太空科技馆</span><h2>七星伴月</h2></div>
+      <p>七座卫星接收天线的白色球体，环绕园区里最大的球体，也就是太空科技体验中心。建筑整体取形于天体运行轨迹，用一条莫比乌斯环把太空科技馆、图文信息中心和科技企业孵化连成一体。</p>
+    </div>
+    <div class="split">
+      <div class="gallery">
+        <button type="button" class="wide" data-full="img/s2.jpg" data-cap="夜景：玻璃球体点亮，莫比乌斯环灯带环绕"><img src="img/s2.jpg" alt="三亚太空科技馆夜景效果图" loading="lazy"><figcaption>夜景</figcaption></button>
+        <button type="button" class="wide" data-full="img/s1.jpg" data-cap="日景：大跨度悬挑连廊连接两座建筑"><img src="img/s1.jpg" alt="三亚太空科技馆日景效果图" loading="lazy"><figcaption>日景</figcaption></button>
+      </div>
+      <div>
+        <dl class="spec">
+          <div><dt>设计构思</dt><dd>七星伴月：七座地面站雷达罩 + 中心玻璃球体</dd></div>
+          <div><dt>功能</dt><dd>太空科技馆 · 图文信息中心 · 科技企业孵化</dd></div>
+          <div><dt>形体</dt><dd>两座椭圆形体由莫比乌斯环连接</dd></div>
+          <div><dt>连廊</dt><dd>大跨度悬挑连廊在三层与两座建筑的顶部、底部相连，下方形成架空室外空间</dd></div>
+        </dl>
+        <div class="concept">
+          <div><b>玻璃球体</b><p>太空科技体验中心为三角网格玻璃球，夜间整体发光。</p></div>
+          <div><b>莫比乌斯环</b><p>银色金属环带绕两座建筑一周，灯带像银河环绕。</p></div>
+          <div><b>七星</b><p>周边七座白色雷达罩在夜景中依次点亮。</p></div>
+        </div>
+        <button class="btn view3d" type="button" data-goto="museum-night">在 3D 沙盘中看夜景 →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="location">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="kicker">区位</span><h2>南邻海榆西线，距海 500 米</h2></div>
+      <p>项目南侧紧邻海榆西线，北侧为产业园科研办公用地，东侧与三亚太空科技馆遥相呼应，西侧和北侧是已建成的卫星地面站区。</p>
+    </div>
+    <div class="split">
+      <dl class="loc-list">
+        <div><dt>起步区</dt><dd>星宇空间（西）＋ 三亚太空科技馆（东）</dd></div>
+        <div><dt>北侧</dt><dd>产业园科研办公用地（规划）</dd></div>
+        <div><dt>南侧</dt><dd>海榆西线；向南约 500 m 抵达海岸</dd></div>
+        <div><dt>东北</dt><dd>卫星地面站雷达罩群</dd></div>
+        <div><dt>场地</dt><dd>星宇空间东西约 205 m，南北约 74 m</dd></div>
+      </dl>
+      <div class="mapbox" role="img" aria-label="起步区区位示意图">
+        <svg viewBox="0 0 720 420" fill="none">
+          <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0v6" stroke="rgba(98,214,255,.35)" stroke-width="1.2"/></pattern></defs>
+          <rect width="720" height="420" fill="#0a1626"/>
+          <path d="M0 360 C180 350 360 372 720 352 L720 420 L0 420Z" fill="#0e3550"/>
+          <path d="M0 346 C180 336 360 358 720 338" stroke="#d9c79c" stroke-opacity=".5" stroke-width="6"/>
+          <text x="610" y="400" fill="#7fb7d4" font-size="12" font-family="Noto Sans SC,sans-serif">南海</text>
+          <rect x="150" y="40" width="430" height="150" fill="url(#hatch)" stroke="rgba(98,214,255,.5)" stroke-dasharray="4 4"/>
+          <text x="365" y="120" text-anchor="middle" fill="#9fdcf2" font-size="13" font-family="Noto Sans SC,sans-serif">产业园科研办公用地（规划）</text>
+          <rect x="150" y="200" width="200" height="58" rx="3" fill="rgba(255,106,90,.22)" stroke="#ff6a5a"/>
+          <text x="250" y="234" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Noto Sans SC,sans-serif">星宇空间</text>
+          <rect x="370" y="196" width="210" height="64" rx="3" fill="rgba(98,214,255,.16)" stroke="#62d6ff"/>
+          <path d="M430 228c-14-16-34-16-34 0s20 16 34 0 34-16 34 0-20 16-34 0Z" stroke="#e8f1f8" stroke-width="1.5"/>
+          <circle cx="458" cy="228" r="7" fill="#62d6ff"/>
+          <text x="530" y="233" fill="#fff" font-size="13" font-weight="700" font-family="Noto Sans SC,sans-serif" text-anchor="middle">太空科技馆</text>
+          <g fill="#e8f1f8"><circle cx="610" cy="170" r="6"/><circle cx="634" cy="150" r="6"/><circle cx="652" cy="126" r="6"/><circle cx="662" cy="98" r="6"/><circle cx="666" cy="70" r="6"/><circle cx="640" cy="60" r="6"/><circle cx="614" cy="82" r="6"/></g>
+          <text x="640" y="200" fill="#c3d3e0" font-size="11" font-family="Noto Sans SC,sans-serif" text-anchor="middle">地面站雷达罩</text>
+          <path d="M0 282 L720 282" stroke="#2b3d52" stroke-width="16"/><path d="M0 282 L720 282" stroke="#e8f1f8" stroke-opacity=".5" stroke-dasharray="10 10"/>
+          <text x="24" y="276" fill="#e8f1f8" font-size="12" font-family="Noto Sans SC,sans-serif">海榆西线</text>
+          <path d="M360 290 V338" stroke="#ffbf6b" stroke-width="1.3" stroke-dasharray="3 4"/>
+          <path d="M354 332 l6 8 6-8" stroke="#ffbf6b" stroke-width="1.3"/>
+          <text x="370" y="320" fill="#ffbf6b" font-size="12" font-family="JetBrains Mono,monospace">≈500 m</text>
+          <path d="M150 268 H350" stroke="#c3d3e0" stroke-width=".8"/><text x="250" y="279" text-anchor="middle" fill="#c3d3e0" font-size="10" font-family="JetBrains Mono,monospace">205 m</text>
+          <path d="M690 34 v26 M684 44 l6-10 6 10" stroke="#c3d3e0" stroke-width="1.2"/><text x="690" y="76" text-anchor="middle" fill="#c3d3e0" font-size="11" font-family="JetBrains Mono,monospace">N</text>
+        </svg>
+      </div>
+    </div>
+    <div class="gallery" style="margin-top:24px">
+      <button type="button" class="wide" data-full="img/s7.jpg" data-cap="起步区鸟瞰：远处为海岸线"><img src="img/s7.jpg" alt="产业园起步区鸟瞰效果图，远处为海岸" loading="lazy"><figcaption>起步区鸟瞰</figcaption></button>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><span>三亚中科遥感信息产业园 · 起步区 3D 示意</span><span>3D 模型依据项目效果图示意建模，形体与尺寸以正式设计文件为准</span></div></footer>
+
+<div class="contact-bar" role="contentinfo"><span class="svc">高新区/创业社区运营 · 办公选址 · 视频制作/游戏/3D网站开发</span><a href="tel:13637548127" id="tel">13637548127</a><button type="button" id="copyTel">复制号码</button></div>
+<div class="rotate-tip" id="rotateTip"><svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#62d6ff" stroke-width="1.6" aria-hidden="true"><rect x="13" y="4" width="18" height="36" rx="3"/><path d="M20 35h4"/></svg>竖屏浏览效果更佳<button type="button" id="rotateOk">继续横屏浏览</button></div>
+<dialog id="lightbox"><img id="lbImg" alt=""><p><span id="lbCap"></span><button type="button" id="lbClose">关闭</button></p></dialog>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script>
+// gallery lightbox (independent of WebGL)
+(function(){
+  const dlg=document.getElementById('lightbox'),img=document.getElementById('lbImg'),cap=document.getElementById('lbCap');
+  document.querySelectorAll('.gallery button').forEach(b=>b.addEventListener('click',()=>{img.src=b.dataset.full;img.alt=b.querySelector('img').alt;cap.textContent=b.dataset.cap||'';try{dlg.showModal()}catch(e){dlg.setAttribute('open','')}}));
+  document.getElementById('lbClose').onclick=()=>dlg.close();
+  const ct=document.getElementById('copyTel');ct.onclick=()=>{const done=()=>{ct.textContent='已复制';setTimeout(()=>ct.textContent='复制号码',1600)};try{navigator.clipboard.writeText('13637548127').then(done,()=>{const r=document.createRange();r.selectNodeContents(document.getElementById('tel'));getSelection().removeAllRanges();getSelection().addRange(r)})}catch(e){}};
+  document.getElementById('rotateOk').onclick=()=>{document.getElementById('rotateTip').hidden=true};
+  dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
+})();
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+
+const V3=THREE.Vector3, Y=new V3(0,1,0), TAU=Math.PI*2;
+const $=s=>document.querySelector(s);
+const stage=$('#stage'), host=$('#gl');
+const loadTxt=$('#loadTxt');
+
+// seeded random
+let seed=20150807; const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
+const rr=(a,b)=>a+(b-a)*rnd();
+
+// value noise
+function hash(x,y,z){let h=x*374761393+y*668265263+z*1274126177;h=(h^(h>>>13))*1274126177;return ((h^(h>>>16))>>>0)/4294967295}
+function noise3(x,y,z){const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi;const s=t=>t*t*(3-2*t);const u=s(xf),v=s(yf),w=s(zf);
+  const L=(a,b,t)=>a+(b-a)*t;
+  return L(L(L(hash(xi,yi,zi),hash(xi+1,yi,zi),u),L(hash(xi,yi+1,zi),hash(xi+1,yi+1,zi),u),v),L(L(hash(xi,yi,zi+1),hash(xi+1,yi,zi+1),u),L(hash(xi,yi+1,zi+1),hash(xi+1,yi+1,zi+1),u),v),w)}
+const fbm=(x,y,z,o=4)=>{let a=0,f=1,amp=.5;for(let i=0;i<o;i++){a+=amp*noise3(x*f,y*f,z*f);f*=2.03;amp*=.5}return a};
+
+// ---------- renderer ----------
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1;
+host.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(40,1,0.5,9000);
+camera.position.set(260,300,560);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.target.set(-10,10,-30);
+controls.enableDamping=true; controls.dampingFactor=.07;
+controls.maxPolarAngle=1.53; controls.minDistance=8; controls.maxDistance=1600;
+controls.autoRotateSpeed=.45;
+
+const pmrem=new THREE.PMREMGenerator(renderer);
+scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
+
+// ---------- textures ----------
+function canvasTex(w,h,draw,{repeat=[1,1],srgb=true}={}){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(...repeat);if(srgb)t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t}
+// thin parallel lines (ribbon + museum walls): along u direction
+const stripeMap=canvasTex(4,256,(g,w,h)=>{g.fillStyle='#d9dee3';g.fillRect(0,0,w,h);for(let i=0;i<h;i+=16){g.fillStyle='#8f989f';g.fillRect(0,i,w,3)}});
+const stripeGlow=canvasTex(4,256,(g,w,h)=>{g.fillStyle='#000';g.fillRect(0,0,w,h);for(let i=0;i<h;i+=16){g.fillStyle='#fff';g.fillRect(0,i+6,w,3)}});
+const grassTex=canvasTex(256,256,(g,w,h)=>{const id=g.createImageData(w,h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){const n=fbm(x/40,y/40,0.5,4),k=(y*w+x)*4;id.data[k]=50+n*34;id.data[k+1]=76+n*44;id.data[k+2]=38+n*20;id.data[k+3]=255}g.putImageData(id,0,0)},{repeat:[60,60]});
+const roadTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#34393f';g.fillRect(0,0,w,h);for(let i=0;i<900;i++){g.fillStyle=`rgba(255,255,255,${rnd()*.05})`;g.fillRect(rnd()*w,rnd()*h,2,2)}
+  // lanes across v: road width maps to v 0..1 (32m). edges + dashed lanes; median at centre
+  g.fillStyle='#e9e9e2';g.fillRect(0,6,w,3);g.fillRect(0,h-9,w,3);
+  g.fillStyle='#e9e9e2';for(const y of [64,192])for(let x=0;x<w;x+=64)g.fillRect(x,y-1,36,3);
+  g.fillStyle='#5f6b4a';g.fillRect(0,118,w,20);g.fillStyle='#d8c46a';g.fillRect(0,116,w,2);g.fillRect(0,138,w,2);
+},{repeat:[60,1]});
+const winTex=canvasTex(64,64,(g,w,h)=>{g.fillStyle='#e9ecef';g.fillRect(0,0,w,h);g.fillStyle='#22313f';for(let y=6;y<h;y+=16)g.fillRect(0,y,w,8)});
+const winGlow=canvasTex(64,64,(g,w,h)=>{g.fillStyle='#000';g.fillRect(0,0,w,h);for(let y=6;y<h;y+=16)for(let x=0;x<w;x+=8){g.fillStyle=rnd()<.55?'#ffcf8a':(rnd()<.5?'#c9e4ff':'#151515');g.fillRect(x+1,y+1,6,6)}});
+const cityGlow=canvasTex(64,64,(g,w,h)=>{g.fillStyle='#000';g.fillRect(0,0,w,h);for(let y=5;y<h;y+=12)for(let x=2;x<w;x+=8){if(rnd()<.45){g.fillStyle=rnd()<.7?'#ffcd85':'#d6ecff';g.fillRect(x,y,6,4)}}});
+const cityMap=canvasTex(64,64,(g,w,h)=>{g.fillStyle='#dcd8cf';g.fillRect(0,0,w,h);g.fillStyle='#9aa6ae';for(let y=5;y<h;y+=12)g.fillRect(0,y,w,4)});
+const glowSpot=canvasTex(128,128,(g,w,h)=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,'rgba(255,214,150,1)');r.addColorStop(.35,'rgba(255,190,110,.45)');r.addColorStop(1,'rgba(255,170,90,0)');g.fillStyle=r;g.fillRect(0,0,w,h)},{srgb:true});
+glowSpot.wrapS=glowSpot.wrapT=THREE.ClampToEdgeWrapping;
+const glowCyan=canvasTex(128,128,(g,w,h)=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,'rgba(140,230,255,1)');r.addColorStop(.4,'rgba(98,214,255,.35)');r.addColorStop(1,'rgba(98,214,255,0)');g.fillStyle=r;g.fillRect(0,0,w,h)});
+glowCyan.wrapS=glowCyan.wrapT=THREE.ClampToEdgeWrapping;
+// planet surface for the glass sphere
+const planetTex=canvasTex(512,256,(g,w,h)=>{const id=g.createImageData(w,h);for(let y=0;y<h;y++){const lat=(y/h-.5)*Math.PI;for(let x=0;x<w;x++){const lon=x/w*TAU;const px=Math.cos(lat)*Math.cos(lon),py=Math.sin(lat),pz=Math.cos(lat)*Math.sin(lon);const n=fbm(px*2.2+5,py*2.2,pz*2.2,5);const k=(y*w+x)*4;let r,gg,b;if(n>.52){const t=Math.min(1,(n-.52)*6);r=60+t*140;gg=150+t*90;b=200+t*55}else{r=8;gg=40+n*60;b=110+n*120}
+  const grid=(Math.abs(((lat/Math.PI*12)%1+1)%1-.5)<.02)||(Math.abs(((lon/TAU*24)%1+1)%1-.5)<.015);if(grid){r+=40;gg+=60;b+=60}id.data[k]=r;id.data[k+1]=gg;id.data[k+2]=b;id.data[k+3]=255}}g.putImageData(id,0,0)});
+planetTex.wrapT=THREE.ClampToEdgeWrapping;
+
+// ---------- materials ----------
+const MAT={
+  white:new THREE.MeshStandardMaterial({color:0xf3f3ef,roughness:.5,metalness:.05}),
+  glass:new THREE.MeshStandardMaterial({color:0x8aa6ba,roughness:.1,metalness:.55,envMapIntensity:1.1}),
+  litWarm:new THREE.MeshStandardMaterial({color:0x5d7b92,roughness:.08,metalness:.85,emissive:0xffc27a,emissiveIntensity:0}),
+  litCool:new THREE.MeshStandardMaterial({color:0x5d7b92,roughness:.08,metalness:.85,emissive:0xd2e8ff,emissiveIntensity:0}),
+  shop:new THREE.MeshStandardMaterial({color:0x5b4a3a,roughness:.2,metalness:.5,emissive:0xffb066,emissiveIntensity:0}),
+  terra:new THREE.MeshStandardMaterial({color:0xb5583d,roughness:.65,metalness:.1}),
+  wood:new THREE.MeshStandardMaterial({color:0xa0704a,roughness:.7}),
+  green:new THREE.MeshStandardMaterial({color:0x8fbb3a,roughness:.95}),
+  hedge:new THREE.MeshStandardMaterial({color:0x3d6a2c,roughness:.95}),
+  pave:new THREE.MeshStandardMaterial({color:0xcfc9bc,roughness:.9}),
+  paveDark:new THREE.MeshStandardMaterial({color:0x9a958b,roughness:.9}),
+  water:new THREE.MeshStandardMaterial({color:0x2fb3d6,roughness:.05,metalness:.3,emissive:0x0a5c7a,emissiveIntensity:0}),
+  solar:new THREE.MeshStandardMaterial({color:0x1b2d5a,roughness:.15,metalness:.7}),
+  metal:new THREE.MeshStandardMaterial({color:0xf4f6f8,map:stripeMap,roughness:.24,metalness:.55,emissive:0xcfe9ff,emissiveMap:stripeGlow,emissiveIntensity:0,side:THREE.DoubleSide,envMapIntensity:1.25}),
+  roofMetal:new THREE.MeshStandardMaterial({color:0xc9cfd4,roughness:.35,metalness:.45}),
+  museumGlass:new THREE.MeshStandardMaterial({color:0x31475a,roughness:.05,metalness:.9,emissive:0xbfe3ff,emissiveIntensity:0,side:THREE.DoubleSide}),
+  lamp:new THREE.MeshStandardMaterial({color:0x333333,emissive:0xffd59a,emissiveIntensity:0}),
+  pole:new THREE.MeshStandardMaterial({color:0x4a525a,roughness:.5,metalness:.6}),
+  dark:new THREE.MeshStandardMaterial({color:0x2a2f35,roughness:.6}),
+};
+MAT.metal.map.repeat.set(1,1); MAT.metal.emissiveMap.repeat.set(1,1);
+
+// ---------- instanced box batches ----------
+const unitBox=new THREE.BoxGeometry(1,1,1);
+const batches={};
+const _m=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new V3(),_s=new V3();
+function addBox(key,x,y,z,sx,sy,sz,ry=0,parent=null){
+  const m=new THREE.Matrix4().compose(_p.set(x,y,z),_q.setFromAxisAngle(Y,ry),_s.set(sx,sy,sz));
+  if(parent)m.premultiply(parent);
+  (batches[key]||(batches[key]=[])).push(m);
+}
+function flushBoxes(){
+  for(const k in batches){const arr=batches[k];const im=new THREE.InstancedMesh(unitBox,MAT[k],arr.length);arr.forEach((m,i)=>im.setMatrixAt(i,m));im.castShadow=true;im.receiveShadow=true;scene.add(im);delete batches[k]}
+}
+
+// ---------- sky / stars / fog ----------
+const skyU={top:{value:new THREE.Color()},hor:{value:new THREE.Color()},bot:{value:new THREE.Color()},sunDir:{value:new V3(0,1,0)},sunCol:{value:new THREE.Color()},sunAmt:{value:1}};
+const sky=new THREE.Mesh(new THREE.SphereGeometry(5000,48,24),new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,fog:false,
+  vertexShader:`varying vec3 vP;void main(){vP=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform vec3 top,hor,bot,sunCol,sunDir;uniform float sunAmt;varying vec3 vP;void main(){float h=vP.y;vec3 c=h>0.?mix(hor,top,pow(clamp(h*1.4,0.,1.),.6)):mix(hor,bot,clamp(-h*5.,0.,1.));float s=max(dot(normalize(vP),normalize(sunDir)),0.);c+=sunCol*(pow(s,900.)*6.+pow(s,10.)*.45+pow(s,2.)*.08)*sunAmt;gl_FragColor=vec4(c,1.);}`}));
+sky.renderOrder=-10; scene.add(sky);
+const starGeo=new THREE.BufferGeometry();{const a=[];for(let i=0;i<2600;i++){const u=rnd(),v=rnd()*.95+.05;const th=u*TAU,ph=Math.acos(v);a.push(Math.sin(ph)*Math.cos(th)*4500,Math.cos(ph)*4500,Math.sin(ph)*Math.sin(th)*4500)}starGeo.setAttribute('position',new THREE.Float32BufferAttribute(a,3))}
+const starMat=new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,opacity:0,fog:false,depthWrite:false});
+const stars=new THREE.Points(starGeo,starMat);stars.renderOrder=-9;scene.add(stars);
+scene.fog=new THREE.Fog(0xcfdde8,700,3600);
+
+// ---------- lights ----------
+const hemi=new THREE.HemisphereLight(0xcfe6ff,0x4a5a3a,1);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xffffff,3);
+sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-360,right:360,top:300,bottom:-300,near:10,far:1800});
+sun.shadow.bias=-0.0004;sun.shadow.normalBias=.8;
+sun.target.position.set(0,0,-40);scene.add(sun,sun.target);
+const sphereLight=new THREE.PointLight(0x7fd8ff,0,220,2);scene.add(sphereLight);
+const plazaLightA=new THREE.PointLight(0xffc98a,0,160,2),plazaLightB=new THREE.PointLight(0xffc98a,0,160,2);scene.add(plazaLightA,plazaLightB);
+
+// ---------- layout constants (1 unit = 1 m; +x east, +z south) ----------
+const ROAD_Z=62, ROAD_W=34;          // 海榆西线
+const XY={x0:-232,x1:-27,z0:-36,z1:38}; // 星宇空间 205 × 74
+const MC=new V3(140,0,-14);          // 太空科技馆中心
+const PRX=122,PRZ=58,PCZ=MC.z-8;     // 广场椭圆
+const excl=[]; // rectangles kept free of trees
+const ex=(x0,z0,x1,z1)=>excl.push([x0,z0,x1,z1]);
+const free=(x,z,m=0)=>!excl.some(r=>x>r[0]-m&&x<r[2]+m&&z>r[1]-m&&z<r[3]+m);
+
+// ---------- ground, roads, sea, mountains ----------
+function plane(w,d,mat,x,y,z){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.receiveShadow=true;scene.add(m);return m}
+plane(9000,9000,new THREE.MeshStandardMaterial({color:0xffffff,map:grassTex,roughness:1}),0,0,0);
+const roadMat=new THREE.MeshStandardMaterial({map:roadTex,roughness:.85});
+plane(3000,ROAD_W,roadMat,0,.12,ROAD_Z).material=roadMat; ex(-1500,ROAD_Z-ROAD_W/2-6,1500,ROAD_Z+ROAD_W/2+6);
+const sideRoad=new THREE.MeshStandardMaterial({color:0x3a3f45,roughness:.85});
+const NS=[[-258,18],[-2,22],[268,18]];
+for(const [x,w] of NS){plane(w,1100,sideRoad,x,.1,-400+ROAD_Z+150);ex(x-w/2-4,-1000,x+w/2+4,600)}
+plane(560,16,sideRoad,5,.1,-60);ex(-270,-70,280,-50);
+// sidewalks
+const walkMat=new THREE.MeshStandardMaterial({color:0xb9b3a7,roughness:.95});
+plane(3000,6,walkMat,0,.11,ROAD_Z-ROAD_W/2-3);plane(3000,6,walkMat,0,.11,ROAD_Z+ROAD_W/2+3);
+// beach + sea
+plane(9000,60,new THREE.MeshStandardMaterial({color:0xe8dcbc,roughness:1}),0,.08,ROAD_Z+500);
+const sea=plane(9000,4000,MAT.water,0,.2,ROAD_Z+530+2000);sea.material=new THREE.MeshStandardMaterial({color:0x1d8db0,roughness:.1,metalness:.35,envMapIntensity:1});
+// mountains (north + flanks)
+function ridge(z,len,base,amp,col,seedOff){const seg=220,pos=[],idx=[];for(let i=0;i<=seg;i++){const x=-len/2+len*i/seg;const h=base+amp*Math.pow(fbm(i/22+seedOff,seedOff,.3,5),1.6)*2.2;pos.push(x,-5,0,x,h,-120);}
+  for(let i=0;i<seg;i++){const a=i*2;idx.push(a,a+2,a+1,a+1,a+2,a+3)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:col,roughness:1,side:THREE.DoubleSide}));m.position.z=z;scene.add(m);return m}
+ridge(-1500,7000,60,420,0x3f5a48,3.1);ridge(-2300,9000,120,620,0x4c6a62,7.7);
+const flank=ridge(-200,6000,40,260,0x3f5a48,11.2);flank.rotation.y=Math.PI/2;flank.position.set(-1900,0,-800);
+const flank2=ridge(-200,6000,40,240,0x45604f,15.4);flank2.rotation.y=-Math.PI/2;flank2.position.set(2000,0,-800);
+
+// ---------- 星宇空间 ----------
+loadTxt.textContent='正在搭建星宇空间…';
+// site paving & courtyard
+plane(XY.x1-XY.x0,XY.z1-XY.z0,MAT.pave,(XY.x0+XY.x1)/2,.14,(XY.z0+XY.z1)/2);
+ex(XY.x0-4,XY.z0-4,XY.x1+4,XY.z1+4);
+addBox('water',-129.5,.35,4,12,.4,20);
+addBox('wood',-129.5,.3,4,18,.3,28);
+function slab(o){
+  const P=new THREE.Matrix4().compose(new V3(o.x,0,o.z),new THREE.Quaternion().setFromAxisAngle(Y,o.rot||0),new V3(1,1,1));
+  const L=o.len,D=o.dep,n=o.floors,pod=o.podium??2,fh=o.fh||3.8;
+  const span=i=>[-L/2+(o.trimL?o.trimL(i):0),L/2-(o.trimR?o.trimR(i):0)];
+  let y=0;
+  for(let i=0;i<n;i++){
+    const h=i<pod?5:fh;const[a,b]=span(i);const w=b-a,cx=(a+b)/2;
+    if(i>0)addBox('white',cx,y+.22,0,w+(i<pod?.4:1.8),.45,D+(i<pod?.4:2.6),0,P);
+    if(i<pod){
+      addBox('shop',cx,y+h/2,0,w-1.2,h-.5,D-1.6,0,P);
+      const cnt=Math.round(w/1.4);for(const sd of[-1,1])for(let k=0;k<cnt;k+=1){if(i===0&&k%9===4)continue;addBox(i===0?'white':'terra',a+(k+.5)*w/cnt,y+h/2,sd*(D/2-.5),.35,h-.6,.6,0,P)}
+    }else{
+      addBox('glass',cx,y+h/2,0,w-.8,h-.45,D-1.4,0,P);
+      const cnt=Math.max(1,Math.round(w/3.6)),mw=w/cnt;
+      for(const sd of[-1,1])for(let k=0;k<cnt;k++){
+        const mx=a+mw*(k+.5);const solid=((k*3+(i%2)*2+(sd>0?1:0)+(o.shift||0))%5)===0;
+        if(solid)addBox('white',mx,y+h/2,sd*(D/2+.35),mw*.92,h-.5,1.6,0,P);
+        else{const r=rnd();addBox(r<o.lit*.75?(r<o.lit*.52?'litWarm':'litCool'):'glass',mx,y+h/2,sd*(D/2-.6),mw-.1,h-.6,.12,0,P)}
+      }
+      for(const sd of[-1,1])addBox('white',cx,y+1.05,sd*(D/2+1.15),w+1.4,.1,.08,0,P);
+      // end walls
+      for(const ed of[a,b])addBox('white',ed,y+h/2,0,.5,h-.45,D-1,0,P);
+    }
+    if(i<n-1){const[a2,b2]=span(i+1);if(a2>a+1)addBox('green',(a+a2)/2,y+h+.6,0,a2-a-.6,.5,D,0,P);if(b2<b-1)addBox('green',(b+b2)/2,y+h+.6,0,b-b2-.6,.5,D,0,P)}
+    y+=h;
+  }
+  const[a,b]=span(n-1);
+  addBox('white',(a+b)/2,y+.55,0,b-a+3.2,1.1,D+4,0,P);
+  if(o.roof==='green')addBox('green',(a+b)/2,y+1.25,0,b-a-3,.4,D-2,0,P);
+  if(o.roof==='solar'){for(let k=0;k<Math.floor((b-a-6)/4);k++)addBox('solar',a+5+k*4,y+1.5,0,3.4,.18,D-3,0,P)}
+  return y;
+}
+// north pair: tall angled bars with heads at the outer ends (from 总平面)
+slab({x:-170,z:-14,rot:-.17,len:66,dep:17,floors:15,lit:.62,roof:'solar',shift:0});
+slab({x:-218,z:-6,rot:Math.PI/2+.05,len:30,dep:18,floors:15,lit:.6,roof:'solar',shift:1});
+slab({x:-89,z:-14,rot:.17,len:66,dep:17,floors:15,lit:.62,roof:'solar',shift:2});
+slab({x:-41,z:-6,rot:Math.PI/2-.05,len:30,dep:18,floors:15,lit:.6,roof:'solar',shift:1});
+// south pair: lower, terraced toward the central axis
+slab({x:-170,z:24,rot:0,len:62,dep:15,floors:10,lit:.66,roof:'green',trimR:i=>i<6?0:(i-5)*5.5});
+slab({x:-89,z:24,rot:0,len:62,dep:15,floors:10,lit:.66,roof:'green',trimL:i=>i<6?0:(i-5)*5.5});
+// podium link & entrance canopy
+addBox('shop',-129.5,2.5,24,18,5,10);addBox('white',-129.5,5.4,24,22,.6,14);addBox('green',-129.5,5.9,24,18,.4,10);
+addBox('white',-129.5,2.6,34.5,26,.4,5);
+// landscaping strip along the road
+for(let x=XY.x0+4;x<XY.x1-4;x+=6)addBox('hedge',x,.45,XY.z1-2.2,4.6,.6,2.2);
+
+// ---------- 太空科技馆 ----------
+loadTxt.textContent='正在搭建三亚太空科技馆…';
+const A=90,B=80;
+const lobeY=t=>17-8.5*Math.sin(t)+6*Math.cos(t);
+const rp=t=>new V3(MC.x+A*Math.sin(t),lobeY(t),MC.z+B*Math.sin(t)*Math.cos(t));
+// plaza
+{const g=new THREE.CircleGeometry(1,96);g.scale(PRX,PRZ,1);MAT.plaza=new THREE.MeshStandardMaterial({color:0xa29e95,roughness:.85});const m=new THREE.Mesh(g,MAT.plaza);m.rotation.x=-Math.PI/2;m.position.set(MC.x,.15,PCZ);m.receiveShadow=true;scene.add(m);
+ for(const s of[.82,.62]){const r=new THREE.Mesh(new THREE.RingGeometry(s-.012,s,128),MAT.paveDark);r.scale.set(PRX,PRZ,1);r.rotation.x=-Math.PI/2;r.position.set(MC.x,.17,PCZ);scene.add(r)}
+ ex(MC.x-PRX,PCZ-PRZ,MC.x+PRX,PCZ+PRZ)}
+function lobe(t0,t1,N=160){const pts=[];for(let i=0;i<N;i++){const t=t0+(t1-t0)*i/N;pts.push(new THREE.Vector2(A*Math.sin(t),B*Math.sin(t)*Math.cos(t)))}const c=new THREE.Vector2();pts.forEach(p=>c.add(p));c.divideScalar(N);return{pts,c}}
+function loftMesh(L,rings,mat,inset=.86){
+  const N=L.pts.length,pos=[],uv=[],idx=[];
+  rings.forEach(([y,s],r)=>{for(let i=0;i<=N;i++){const p=L.pts[i%N];const k=s*inset;pos.push(MC.x+L.c.x+(p.x-L.c.x)*k,y,MC.z+L.c.y+(p.y-L.c.y)*k);uv.push(i/N*14,y/4)}});
+  for(let r=0;r<rings.length-1;r++)for(let i=0;i<N;i++){const a=r*(N+1)+i,b=a+1,c=a+N+1,d=c+1;idx.push(a,c,b,b,c,d)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
+  const m=new THREE.Mesh(g,mat);m.castShadow=m.receiveShadow=true;scene.add(m);return m}
+function capMesh(L,y,s,mat,inset=.86){const sh=new THREE.Shape(L.pts.map(p=>new THREE.Vector2(L.c.x+(p.x-L.c.x)*s*inset,-(L.c.y+(p.y-L.c.y)*s*inset))));const g=new THREE.ShapeGeometry(sh,4);g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mat);m.position.set(MC.x,y,MC.z);m.castShadow=m.receiveShadow=true;scene.add(m);return m}
+// west body: saucer that flares outward, glass band, metal crown
+const WL=lobe(Math.PI,TAU),EL=lobe(0,Math.PI);
+loftMesh(WL,[[0,.62],[4,.74],[9,.9]],MAT.metal);
+loftMesh(WL,[[9,.9],[11,.96],[12,.975]],MAT.metal);
+loftMesh(WL,[[12,.975],[19,1]],MAT.museumGlass);
+loftMesh(WL,[[19,1],[23.5,1.02]],MAT.metal);
+capMesh(WL,23.5,1.02,MAT.roofMetal);
+// east body: low ring that cradles the sphere
+loftMesh(EL,[[0,.7],[3,.85],[5,.92]],MAT.metal);
+loftMesh(EL,[[5,.92],[8,.95]],MAT.museumGlass);
+loftMesh(EL,[[8,.95],[10.5,.98]],MAT.metal);
+capMesh(EL,10.5,.98,MAT.roofMetal);
+// Möbius ribbon: vertical band around each body, twisting flat where it crosses (two levels)
+const ribbonCurve=[];
+{
+  const N=900,M=10,pos=[],uv=[],idx=[],edgeA=[],edgeB=[];
+  for(let i=0;i<=N;i++){
+    const t=i/N*TAU,p=rp(t),T=rp(t+.002).sub(rp(t-.002)).normalize();
+    const side=new V3().crossVectors(T,Y).normalize();
+    const s2=Math.sin(t)**2,flat=Math.exp(-s2*10),th=Math.PI/2*flat;
+    const Wd=new V3().copy(Y).multiplyScalar(Math.cos(th)).addScaledVector(side,Math.sin(th));
+    const w=5.5+5*flat;
+    for(let j=0;j<=M;j++){const q=p.clone().addScaledVector(Wd,(j/M-.5)*w);pos.push(q.x,q.y,q.z);uv.push(t/TAU*60,j/M*2)}
+    if(i%2===0){edgeA.push(p.clone().addScaledVector(Wd,w/2));edgeB.push(p.clone().addScaledVector(Wd,-w/2));ribbonCurve.push(p)}
+  }
+  for(let i=0;i<N;i++)for(let j=0;j<M;j++){const a=i*(M+1)+j,b=a+1,c=a+M+1,d=c+1;idx.push(a,c,b,b,c,d)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
+  const m=new THREE.Mesh(g,MAT.metal);m.castShadow=m.receiveShadow=true;scene.add(m);
+  MAT.edgeLED=new THREE.MeshStandardMaterial({color:0xe9f4ff,roughness:.3,metalness:.4,emissive:0xd8f0ff,emissiveIntensity:.2});
+  for(const e of[edgeA,edgeB]){const c=new THREE.CatmullRomCurve3(e,true);const tm=new THREE.Mesh(new THREE.TubeGeometry(c,900,.32,6,true),MAT.edgeLED);scene.add(tm)}
+  // supports under the low crossing bridge
+  for(const t of[Math.PI-.18,Math.PI+.18,.25,-.25]){const p=rp(t);if(p.y>14)continue;const c=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,p.y-1.5,12),MAT.roofMetal);c.position.set(p.x,(p.y-1.5)/2,p.z);c.castShadow=true;scene.add(c)}
+}
+// glass geodesic sphere (太空科技体验中心)
+const SPH=new V3(MC.x+EL.c.x*1.02,16,MC.z+EL.c.y);
+const sphereGlass=new THREE.Mesh(new THREE.IcosahedronGeometry(17,4),new THREE.MeshStandardMaterial({color:0xc8dbe6,roughness:.04,metalness:.9,transparent:true,opacity:.45,envMapIntensity:1.6,depthWrite:false}));
+sphereGlass.position.copy(SPH);scene.add(sphereGlass);
+const wireMat=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.6});
+const sphereWire=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(17.08,3)),wireMat);sphereWire.position.copy(SPH);scene.add(sphereWire);
+const planetMat=new THREE.MeshStandardMaterial({color:0x0b1828,roughness:.6,emissive:0xffffff,emissiveMap:planetTex,emissiveIntensity:.3});
+const planet=new THREE.Mesh(new THREE.SphereGeometry(15.4,64,32),planetMat);planet.position.copy(SPH);planet.castShadow=true;scene.add(planet);
+sphereLight.position.copy(SPH);
+plazaLightA.position.set(MC.x-50,7,PCZ+44);plazaLightB.position.set(MC.x+40,7,PCZ+44);
+// visitors on the plaza
+{const g=new THREE.CylinderGeometry(.22,.22,1.7,5);g.translate(0,.85,0);const im=new THREE.InstancedMesh(g,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.8}),340);const col=new THREE.Color();let n=0;
+ while(n<340){const a=rnd()*TAU,r=Math.sqrt(rnd());const x=MC.x+Math.cos(a)*r*(PRX-4),z=PCZ+Math.sin(a)*r*(PRZ-4);const L=(x-MC.x)/A;if(Math.abs(L)<1.05&&Math.abs(z-MC.z)<38)continue;_m.makeTranslation(x,.15,z);im.setMatrixAt(n,_m);im.setColorAt(n,col.setHSL(rnd(),.25,rr(.25,.6)));n++}
+ im.castShadow=true;scene.add(im);
+ // 星宇 street-front people
+ const im2=new THREE.InstancedMesh(g,im.material,160);for(let i=0;i<160;i++){_m.makeTranslation(rr(XY.x0+4,XY.x1-4),.15,rr(XY.z1-6,ROAD_Z-ROAD_W/2-1));im2.setMatrixAt(i,_m);im2.setColorAt(i,col.setHSL(rnd(),.25,rr(.25,.6)))}scene.add(im2)}
+
+// ---------- 七星：satellite ground-station radomes ----------
+loadTxt.textContent='正在点亮七星…';
+const radomes=[];
+{
+  const domeGeo=new THREE.IcosahedronGeometry(1,3),edge=new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.01,2));
+  const arc=[[232,-92],[262,-120],[300,-138],[338,-150],[378,-168],[410,-200],[432,-240]];
+  arc.forEach(([x,z],i)=>{
+    const r=i%3===1?9:7.5,base=6+(i%2)*2;
+    const mat=new THREE.MeshStandardMaterial({color:0xf6f7f8,roughness:.45,metalness:0,emissive:0x5fdcff,emissiveIntensity:0});
+    const d=new THREE.Mesh(domeGeo,mat);d.scale.setScalar(r);d.position.set(x,base+r*.82,z);d.castShadow=true;scene.add(d);
+    const l=new THREE.LineSegments(edge,new THREE.LineBasicMaterial({color:0xb8c3cc,transparent:true,opacity:.5}));l.scale.setScalar(r);l.position.copy(d.position);scene.add(l);
+    const b=new THREE.Mesh(new THREE.CylinderGeometry(r*.55,r*.7,base,20),MAT.white);b.position.set(x,base/2,z);b.castShadow=b.receiveShadow=true;scene.add(b);
+    const halo=new THREE.Mesh(new THREE.PlaneGeometry(r*5,r*5),new THREE.MeshBasicMaterial({map:glowCyan,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity:0,fog:false}));halo.rotation.x=-Math.PI/2;halo.position.set(x,.3,z);scene.add(halo);
+    radomes.push({mat,line:l.material,halo:halo.material,phase:i});ex(x-r-6,z-r-6,x+r+6,z+r+6);
+  });
+  // station buildings
+  for(const [x,z,w,d,h] of [[300,-100,40,18,9],[360,-115,26,26,12],[268,-170,34,16,8],[420,-150,22,40,10],[340,-210,46,18,8]]){addBox('white',x,h/2,z,w,h,d);addBox('litCool',x,h*.55,z+d/2+.05,w*.9,h*.3,.2);ex(x-w/2-4,z-d/2-4,x+w/2+4,z+d/2+4)}
+  // a few more (unlit) domes further north — existing ground station
+  for(const [x,z,r] of [[180,-190,6],[214,-226,7],[470,-290,8],[500,-210,6.5]]){const d=new THREE.Mesh(domeGeo,MAT.white);d.scale.setScalar(r);d.position.set(x,5+r*.8,z);d.castShadow=true;scene.add(d);const b=new THREE.Mesh(new THREE.CylinderGeometry(r*.55,r*.7,5,16),MAT.white);b.position.set(x,2.5,z);scene.add(b);ex(x-r-5,z-r-5,x+r+5,z+r+5)}
+}
+
+// ---------- 科研办公用地（规划）: four-armed star buildings ----------
+{
+  const R=58,sh=new THREE.Shape();
+  for(let i=0;i<=200;i++){const a=i/200*TAU+Math.PI/4;const r=R*(.36+.64*Math.pow(Math.abs(Math.cos(2*(a-Math.PI/4))),2.4));const x=Math.cos(a)*r,y=Math.sin(a)*r;i?sh.lineTo(x,y):sh.moveTo(x,y)}
+  const hole=new THREE.Path();hole.absarc(0,0,R*.16,0,TAU,true);sh.holes.push(hole);
+  const g=new THREE.ExtrudeGeometry(sh,{depth:12,bevelEnabled:false,curveSegments:24});g.rotateX(-Math.PI/2);
+  const ghost=new THREE.MeshStandardMaterial({color:0xd6ecf8,roughness:.2,metalness:.1,transparent:true,opacity:.32,depthWrite:false,emissive:0x62d6ff,emissiveIntensity:0});MAT.ghost=ghost;
+  const edgeM=new THREE.LineBasicMaterial({color:0x8fe3ff,transparent:true,opacity:.55});MAT.ghostEdge=edgeM;const eg=new THREE.EdgesGeometry(g,30);
+  for(const [x,z] of [[-150,-175],[-30,-175],[95,-175],[-90,-300],[30,-300]]){const m=new THREE.Mesh(g,ghost);m.position.set(x,0,z);const r=rnd()*.4;m.rotation.y=r;scene.add(m);const l=new THREE.LineSegments(eg,edgeM);l.position.copy(m.position);l.rotation.y=r;scene.add(l);ex(x-R*.7,z-R*.7,x+R*.7,z+R*.7)}
+}
+
+// ---------- surrounding town (south of the road, west & east) ----------
+{
+  const cityMat=new THREE.MeshStandardMaterial({color:0xffffff,map:cityMap,emissive:0xffffff,emissiveMap:cityGlow,emissiveIntensity:0,roughness:.7});MAT.city=cityMat;
+  const list=[];
+  for(let bx=-900;bx<900;bx+=74)for(let bz=ROAD_Z+60;bz<ROAD_Z+420;bz+=66){if(rnd()<.45)continue;const n=1+Math.floor(rnd()*2);for(let k=0;k<n;k++){const w=rr(16,34),d=rr(12,20),h=rnd()<.12?rr(26,48):rr(7,16);list.push([bx+rr(-14,14),h,bz+rr(-10,10),w,d])}}
+  for(let i=0;i<70;i++){const x=rr(-900,-300),z=rr(-600,ROAD_Z-40);if(!free(x,z,20))continue;list.push([x,rr(9,24),z,rr(16,40),rr(14,26)])}
+  for(let i=0;i<60;i++){const x=rr(520,950),z=rr(-600,ROAD_Z-40);if(!free(x,z,20))continue;list.push([x,rr(9,30),z,rr(16,40),rr(14,26)])}
+  const im=new THREE.InstancedMesh(unitBox,cityMat,list.length);list.forEach(([x,h,z,w,d],i)=>{_m.compose(_p.set(x,h/2,z),_q.setFromAxisAngle(Y,0),_s.set(w,h,d));im.setMatrixAt(i,_m);ex(x-w/2-2,z-d/2-2,x+w/2+2,z+d/2+2)});
+  im.castShadow=true;im.receiveShadow=true;scene.add(im);
+}
+
+// ---------- vegetation ----------
+loadTxt.textContent='正在种植椰林…';
+const frond=(()=>{const parts=[];for(let f=0;f<9;f++){const ang=f/9*TAU+rnd()*.3,len=rr(4.2,5.4);const pos=[],idx=[];const S=7;for(let s=0;s<=S;s++){const u=s/S;const r=len*u,y=1.1*u-3*u*u*u*.9;const wdt=(Math.sin(Math.PI*Math.min(1,u*1.15))*.95+.06);const cx=Math.cos(ang),cz=Math.sin(ang);const px=-cz,pz=cx;pos.push(cx*r+px*wdt,y-.25*wdt,cz*r+pz*wdt, cx*r-px*wdt,y-.25*wdt,cz*r-pz*wdt, cx*r,y+.12,cz*r)}
+  for(let s=0;s<S;s++){const a=s*3;idx.push(a,a+3,a+2,a+2,a+3,a+5,a+2,a+5,a+1,a+1,a+5,a+4)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();parts.push(g)}return mergeGeometries(parts)})();
+const trunkG=new THREE.CylinderGeometry(.22,.38,1,6);trunkG.translate(0,.5,0);
+const palms=[];
+const palmAt=(x,z,h=rr(8,13))=>palms.push([x,z,h]);
+for(let x=-1400;x<1400;x+=13){palmAt(x+rr(-2,2),ROAD_Z,rr(9,12));if(free(x,ROAD_Z-ROAD_W/2-8,0)||Math.abs(x)<900)palmAt(x+6,ROAD_Z+ROAD_W/2+8.5,rr(8,12))}
+for(let i=0;i<46;i++)palmAt(rr(XY.x0+6,XY.x1-6),rr(XY.z0+2,XY.z1-1)+0,rr(6,10));
+for(let i=0;i<70;i++){const a=rnd()*TAU;const x=MC.x+Math.cos(a)*(PRX+rr(4,14)),z=PCZ+Math.sin(a)*(PRZ+rr(4,14));if(z<ROAD_Z-ROAD_W/2-8)palmAt(x,z)}
+for(const [x,w] of NS)for(let z=-560;z<ROAD_Z-30;z+=14){palmAt(x-w/2-4,z);palmAt(x+w/2+4,z)}
+const palmsF=palms.filter(([x,z])=>!(x>XY.x0+2&&x<XY.x1-2&&z>XY.z0&&z<XY.z1)||true);
+const leafMat=new THREE.MeshStandardMaterial({color:0x4f8a33,roughness:.8,side:THREE.DoubleSide});
+const trunkMat=new THREE.MeshStandardMaterial({color:0x8a7558,roughness:.9});
+{const T=new THREE.InstancedMesh(trunkG,trunkMat,palmsF.length),C=new THREE.InstancedMesh(frond,leafMat,palmsF.length);const col=new THREE.Color();
+ palmsF.forEach(([x,z,h],i)=>{const lean=rr(-.08,.08);_m.compose(_p.set(x,0,z),_q.setFromEuler(new THREE.Euler(lean,0,rr(-.08,.08))),_s.set(1,h,1));T.setMatrixAt(i,_m);
+   const top=new V3(0,h,0).applyQuaternion(_q);_m.compose(_p.set(x+top.x,top.y,z+top.z),new THREE.Quaternion().setFromAxisAngle(Y,rnd()*TAU),_s.setScalar(rr(.85,1.15)));C.setMatrixAt(i,_m);C.setColorAt(i,col.setHSL(rr(.24,.3),rr(.4,.6),rr(.32,.45)))});
+ T.castShadow=C.castShadow=true;scene.add(T,C)}
+// broadleaf canopy filling empty land
+{const g=new THREE.IcosahedronGeometry(1,1);const list=[];let tries=0;while(list.length<3200&&tries<40000){tries++;const x=rr(-1100,1100),z=rr(-900,ROAD_Z+440);if(!free(x,z,3))continue;const near=Math.abs(x)<500&&z>-450;if(!near&&rnd()<.55)continue;list.push([x,z,rr(3.5,7.5)])}
+ const im=new THREE.InstancedMesh(g,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.95,flatShading:true}),list.length);const col=new THREE.Color();
+ list.forEach(([x,z,r],i)=>{_m.compose(_p.set(x,r*.75,z),_q.setFromAxisAngle(Y,rnd()*3),_s.set(r,r*.8,r));im.setMatrixAt(i,_m);im.setColorAt(i,col.setHSL(rr(.22,.32),rr(.35,.55),rr(.2,.32)))});
+ im.castShadow=true;im.receiveShadow=true;scene.add(im)}
+
+// ---------- street lamps & light pools ----------
+const lampSpots=[];
+{const poles=[],heads=[];
+ for(let x=-1400;x<1400;x+=30){for(const z of[ROAD_Z-ROAD_W/2-2,ROAD_Z+ROAD_W/2+2]){poles.push([x,z]);heads.push([x,9,z+(z<ROAD_Z?2.2:-2.2)])}}
+ for(const [x,w] of NS)for(let z=-560;z<ROAD_Z-30;z+=34){poles.push([x-w/2-1.5,z]);heads.push([x-w/2+.5,9,z])}
+ for(let i=0;i<24;i++){const a=i/24*TAU;const x=MC.x+Math.cos(a)*(PRX-6),z=PCZ+Math.sin(a)*(PRZ-5);poles.push([x,z]);heads.push([x,5,z])}
+ const pg=new THREE.CylinderGeometry(.12,.16,9,6);pg.translate(0,4.5,0);const P=new THREE.InstancedMesh(pg,MAT.pole,poles.length);poles.forEach(([x,z],i)=>{_m.makeTranslation(x,0,z);P.setMatrixAt(i,_m)});scene.add(P);
+ const hg=new THREE.BoxGeometry(1.6,.25,.6);const H=new THREE.InstancedMesh(hg,MAT.lamp,heads.length);heads.forEach(([x,y,z],i)=>{_m.makeTranslation(x,y,z);H.setMatrixAt(i,_m)});scene.add(H);
+ const spotMat=new THREE.MeshBasicMaterial({map:glowSpot,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity:0,fog:true});MAT.spot=spotMat;
+ const sg=new THREE.PlaneGeometry(1,1);sg.rotateX(-Math.PI/2);const S=new THREE.InstancedMesh(sg,spotMat,heads.length+40);
+ heads.forEach(([x,y,z],i)=>{_m.compose(_p.set(x,.25,z),_q.identity(),_s.setScalar(y>6?22:9));S.setMatrixAt(i,_m)});
+ // warm wash at the 星宇 podium + museum entries
+ for(let i=0;i<40;i++){const x=i<26?XY.x0+6+i*7.6:MC.x+rr(-80,80),z=i<26?XY.z1+1:PCZ+PRZ-6;_m.compose(_p.set(x,.26,z),_q.identity(),_s.setScalar(i<26?12:7));S.setMatrixAt(heads.length+i,_m)}
+ scene.add(S)}
+
+// ---------- traffic ----------
+const cars=[];const NCAR=90;
+const carBody=new THREE.InstancedMesh(new THREE.BoxGeometry(4.4,1.45,1.9),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.3,metalness:.6}),NCAR);
+const headG=new THREE.BoxGeometry(.15,.32,1.5);
+MAT.head=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xfff3d6,emissiveIntensity:.2});
+MAT.tail=new THREE.MeshStandardMaterial({color:0x550000,emissive:0xff2a1a,emissiveIntensity:.2});
+const heads=new THREE.InstancedMesh(headG,MAT.head,NCAR),tails=new THREE.InstancedMesh(headG,MAT.tail,NCAR);
+{const col=new THREE.Color();const lanes=[[ROAD_Z-13,-1],[ROAD_Z-8,-1],[ROAD_Z+8,1],[ROAD_Z+13,1]];for(let i=0;i<NCAR;i++){const L=lanes[i%4];cars.push({z:L[0],dir:L[1],x:rr(-1300,1300),v:rr(11,17)});carBody.setColorAt(i,col.setHSL(rnd(),rr(0,.5),[.1,.85,.5,.3][i%4]))}}
+carBody.castShadow=true;scene.add(carBody,heads,tails);
+function updateCars(dt){for(let i=0;i<NCAR;i++){const c=cars[i];c.x+=c.v*c.dir*dt;if(c.x>1400)c.x=-1400;if(c.x<-1400)c.x=1400;
+  _m.makeTranslation(c.x,.95,c.z);carBody.setMatrixAt(i,_m);_m.makeTranslation(c.x+2.22*c.dir,.85,c.z);heads.setMatrixAt(i,_m);_m.makeTranslation(c.x-2.22*c.dir,.95,c.z);tails.setMatrixAt(i,_m)}
+  carBody.instanceMatrix.needsUpdate=heads.instanceMatrix.needsUpdate=tails.instanceMatrix.needsUpdate=true}
+updateCars(0);
+flushBoxes();
+
+// ---------- time of day ----------
+const C=h=>new THREE.Color(h);
+const MODES={
+  day:{top:C(0x3a78c8),hor:C(0xdbe9f4),bot:C(0x8aa0a8),sunDir:new V3(.55,.62,.45),sunCol:C(0xfff2dc),sunI:3.1,sunAmt:.8,hemiS:C(0xd6ecff),hemiG:C(0x51613f),hemiI:.95,fog:C(0xcadbe6),fogN:800,fogF:3800,exp:.95,night:0,bloomS:.16,bloomT:.95,bloomR:.35,env:1,stars:0,sea:C(0x1f8fb2)},
+  dusk:{top:C(0x24366b),hor:C(0xff9157),bot:C(0x3b2b35),sunDir:new V3(-.86,.1,.32),sunCol:C(0xffa25e),sunI:2.3,sunAmt:1.1,hemiS:C(0x8f84b8),hemiG:C(0x3b2c26),hemiI:.55,fog:C(0xb77f72),fogN:500,fogF:3200,exp:.95,night:.6,bloomS:.35,bloomT:.86,bloomR:.35,env:.7,stars:.15,sea:C(0x2f4c6a)},
+  night:{top:C(0x020611),hor:C(0x10284a),bot:C(0x05080f),sunDir:new V3(-.35,.65,-.45),sunCol:C(0x6f8fd6),sunI:.38,sunAmt:.25,hemiS:C(0x2b4373),hemiG:C(0x0a0d14),hemiI:.4,fog:C(0x081426),fogN:500,fogF:3000,exp:1.05,night:1,bloomS:.42,bloomT:.8,bloomR:.3,env:.32,stars:1,sea:C(0x07182a)},
+};
+const cur=JSON.parse(JSON.stringify({}));
+function cloneMode(m){const o={};for(const k in m)o[k]=m[k].clone?m[k].clone():m[k];return o}
+let state=cloneMode(MODES.dusk),from=null,to=null,mt=1;
+const allStd=[];scene.traverse(o=>{if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m.isMeshStandardMaterial&&!allStd.includes(m)){m.userData.env=m.envMapIntensity;allStd.push(m)}})}});
+let modeT0=0;function setMode(name){from=cloneMode(state);to=MODES[name];mt=0;modeT0=performance.now();document.querySelectorAll('.seg.time button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===name));curMode=name}
+let curMode='dusk';
+function lerpMode(a,b,t){for(const k in b){if(b[k].isColor)state[k].copy(a[k]).lerp(b[k],t);else if(b[k].isVector3)state[k].copy(a[k]).lerp(b[k],t).normalize();else state[k]=a[k]+(b[k]-a[k])*t}}
+function applyMode(time){
+  const s=state,nf=s.night;
+  skyU.top.value.copy(s.top);skyU.hor.value.copy(s.hor);skyU.bot.value.copy(s.bot);skyU.sunDir.value.copy(s.sunDir);skyU.sunCol.value.copy(s.sunCol);skyU.sunAmt.value=s.sunAmt;
+  sun.color.copy(s.sunCol);sun.intensity=s.sunI;sun.position.copy(sun.target.position).addScaledVector(s.sunDir,900);
+  hemi.color.copy(s.hemiS);hemi.groundColor.copy(s.hemiG);hemi.intensity=s.hemiI;
+  scene.fog.color.copy(s.fog);scene.fog.near=s.fogN;scene.fog.far=s.fogF;
+  renderer.toneMappingExposure=s.exp;
+  bloom.strength=s.bloomS;bloom.threshold=s.bloomT;bloom.radius=s.bloomR;
+  starMat.opacity=s.stars;
+  for(const m of allStd)m.envMapIntensity=m.userData.env*s.env;
+  sea.material.color.copy(s.sea);
+  const flick=1;
+  const n2=nf*nf;MAT.litWarm.emissiveIntensity=n2*.95;MAT.litCool.emissiveIntensity=n2*.7;MAT.shop.emissiveIntensity=.06+n2*1.7;
+  MAT.metal.emissiveIntensity=n2*.18;MAT.edgeLED.emissiveIntensity=.1+n2*1.5;MAT.museumGlass.emissiveIntensity=n2*.55;
+  MAT.lamp.emissiveIntensity=n2*3.5;MAT.spot.opacity=n2*.2;MAT.head.emissiveIntensity=.2+nf*5;MAT.tail.emissiveIntensity=.2+nf*4;
+  MAT.city.emissiveIntensity=nf*.95;MAT.ghost.emissiveIntensity=nf*.35;MAT.ghostEdge.opacity=.45+nf*.4;MAT.water.emissiveIntensity=nf*1.2;
+  planetMat.emissiveIntensity=.35+n2*1.05;planet.rotation.y=time*.00006;
+  wireMat.color.setRGB(.85,.95,1).multiplyScalar(1+n2*.9);wireMat.opacity=.45+nf*.5;
+  sphereLight.intensity=n2*3000;plazaLightA.intensity=plazaLightB.intensity=n2*400;
+  const cycle=(time/1000)%7;
+  radomes.forEach(r=>{const d=Math.max(0,1-Math.abs(cycle-r.phase)/1.4);const g=n2*(.45+d*1.3);r.mat.emissiveIntensity=g;r.halo.opacity=n2*(.3+d*.5);r.line.opacity=.5-nf*.3});
+}
+
+// ---------- post ----------
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(512,512),.6,.45,.7);composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ---------- labels ----------
+const LABELS=[
+  {t:'星宇空间',s:'四栋板式高层 · 6.5万㎡',p:new V3(-129,72,-8),c:'#ff8a7a',v:'xingyu'},
+  {t:'三亚太空科技馆',s:'七星伴月 · 莫比乌斯环',p:new V3(MC.x-10,44,MC.z),c:'#62d6ff',v:'museum'},
+  {t:'太空科技体验中心',s:'玻璃球体',p:new V3(SPH.x,SPH.y+22,SPH.z),c:'#62d6ff',v:'plaza',minor:1},
+  {t:'卫星地面站 · 七星',s:'7 座雷达罩',p:new V3(338,30,-150),c:'#9fe8ff',v:'stars',minor:1},
+  {t:'产业园科研办公用地',s:'规划',p:new V3(-30,26,-230),c:'#a9d64a',minor:1,v:'research'},
+  {t:'海榆西线',s:'城市主干道',p:new V3(-330,6,ROAD_Z),c:'#ffbf6b',minor:1,v:'street'},
+  {t:'距海约 500 m',s:'南海',p:new V3(-20,4,ROAD_Z+500),c:'#ffbf6b',minor:1,v:'overview'},
+];
+const labelsEl=$('#labels');
+LABELS.forEach(L=>{const b=document.createElement('button');b.type='button';b.className='tag'+(L.minor?' minor':'');b.style.setProperty('--tc',L.c);b.innerHTML=`<span>${L.t}<small>${L.s}</small></span>`;b.addEventListener('click',()=>goView(L.v));labelsEl.appendChild(b);L.el=b});
+const _v=new V3();
+function updateLabels(w,h){for(const L of LABELS){_v.copy(L.p).project(camera);const vis=_v.z<1&&_v.x>-1.1&&_v.x<1.1&&_v.y>-1.1&&_v.y<1.2;const d=camera.position.distanceTo(L.p);const hide=!vis||(L.minor&&d>1300)||d<25;L.el.classList.toggle('hide',hide);if(!hide)L.el.style.transform=`translate(${(_v.x+1)/2*w}px,${(1-_v.y)/2*h}px) translate(-50%,-100%)`}}
+
+// ---------- camera stations ----------
+const VIEWS={
+  overview:{p:[300,290,560],t:[-10,10,-40]},
+  xingyu:{p:[-40,95,175],t:[-130,26,0]},
+  museum:{p:[262,92,148],t:[140,12,-14]},
+  street:{p:[-6,3.2,ROAD_Z+19],t:[-160,24,10]},
+  plaza:{p:[MC.x+118,7,ROAD_Z+26],t:[MC.x-4,15,MC.z-6]},
+  stars:{p:[180,70,40],t:[330,14,-160]},
+  research:{p:[-30,160,40],t:[-30,0,-220]},
+  courtyard:{p:[-129,4,46],t:[-129,30,-20]},
+  orbit:{p:[MC.x-90,40,MC.z+120],t:[MC.x,14,MC.z]},
+  hero:{p:[MC.x+150,46,MC.z+150],t:[MC.x+6,10,MC.z-4]},
+  hero2:{p:[MC.x-40,26,MC.z+175],t:[MC.x+10,12,MC.z-6]},
+};
+let tween=null;
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function flyTo(key,dur=2400){const V=VIEWS[key];if(!V)return;tween={p0:camera.position.clone(),t0:controls.target.clone(),p1:new V3(...V.p),t1:new V3(...V.t),start:performance.now(),dur};
+  document.querySelectorAll('.seg.views button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===key))}
+function goView(key){stopTour();flyTo(key)}
+document.querySelectorAll('.seg.views button').forEach(b=>b.addEventListener('click',()=>goView(b.dataset.view)));
+document.querySelectorAll('.seg.time button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+const rotBtn=$('#rotBtn');rotBtn.onclick=()=>{controls.autoRotate=!controls.autoRotate;rotBtn.setAttribute('aria-pressed',controls.autoRotate)};
+$('#fsBtn').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():stage.requestFullscreen?.().catch(()=>{})}catch(e){}};
+document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>{const g=b.dataset.goto;stage.scrollIntoView({behavior:'smooth',block:'center'});if(g==='museum-night'){setMode('night');goView('museum')}else goView(g)}));
+
+// ---------- guided tour ----------
+const TOUR=[
+  {v:'overview',m:'day',k:'起步区',t:'三亚中科遥感信息产业园',p:'西侧星宇空间、东侧太空科技馆，北面是科研办公用地与卫星地面站，南临海榆西线。'},
+  {v:'xingyu',m:'day',k:'星宇空间',t:'四栋板式高层，宙中的「星座」',p:'北楼 15 层，南楼 10 层逐层退台；占地 22.7 亩，总建筑面积约 6.5 万㎡。'},
+  {v:'street',m:'dusk',k:'街景',t:'海榆西线街景',p:'沿街为商业裙房与椰林步道，南距海岸约 500 米。'},
+  {v:'museum',m:'dusk',k:'太空科技馆',t:'莫比乌斯环连起两座建筑',p:'大跨度悬挑连廊在三层与两座建筑的顶部和底部相连，下方形成架空广场。'},
+  {v:'stars',m:'night',k:'七星伴月',t:'七座雷达罩环绕玻璃球体',p:'地面站的七座白色雷达罩在夜色中依次点亮，簇拥最大的球体。'},
+  {v:'plaza',m:'night',k:'科技馆广场',t:'玻璃球体夜景',p:'太空科技体验中心的三角网格玻璃球整体发光，环带灯光如银河环绕。'},
+];
+let tourId=0;const cap=$('#caption');
+function stopTour(){if(!tourId)return;tourId=0;cap.hidden=true;$('#tourBtn').setAttribute('aria-pressed','false');$('#tourBtn').textContent='▶ 漫游'}
+async function runTour(){stopTour();const id=++tourSeq;tourId=id;controls.autoRotate=false;rotBtn.setAttribute('aria-pressed','false');cap.hidden=false;$('#tourBtn').setAttribute('aria-pressed','true');$('#tourBtn').textContent='■ 停止';
+  for(let i=0;i<TOUR.length;i++){if(tourId!==id)return;const s=TOUR[i];setMode(s.m);flyTo(s.v,2600);
+    $('#capK').textContent=`${String(i+1).padStart(2,'0')} / ${String(TOUR.length).padStart(2,'0')} · ${s.k}`;$('#capT').textContent=s.t;$('#capP').textContent=s.p;$('#capMode').textContent={day:'日景',dusk:'黄昏',night:'夜景'}[s.m];
+    const t0=performance.now(),D=7200;await new Promise(res=>{const step=()=>{if(tourId!==id)return res();const k=(performance.now()-t0)/D;$('#capBar').style.width=Math.min(100,k*100)+'%';k>=1?res():requestAnimationFrame(step)};step()})}
+  if(tourId===id){stopTour();flyTo('overview')}}
+let tourSeq=0;
+$('#tourBtn').onclick=()=>tourId?stopTour():runTour();
+$('#tourBtn2').onclick=()=>{stage.scrollIntoView({behavior:'smooth',block:'center'});runTour()};
+$('#skipBtn').onclick=stopTour;
+controls.addEventListener('start',()=>{tween=null});
+
+// ---------- loop ----------
+let W=1,H=1;
+function resize(){const r=stage.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);renderer.setSize(W,H,false);composer.setSize(W,H);camera.aspect=W/H;camera.fov=W/H<1?Math.min(68,40/Math.pow(W/H,.75)):40;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(stage);resize();
+let visible=true;new IntersectionObserver(e=>{visible=e[0].isIntersecting}).observe(stage);
+let last=performance.now();
+setMode('dusk');mt=1;state=cloneMode(MODES.dusk);
+flyTo('overview',10);
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(!visible||document.hidden)return;
+  if(mt<1){mt=Math.min(1,(now-modeT0)/1600);lerpMode(from,to,ease(mt))}
+  if(tween){const k=Math.min(1,(now-tween.start)/tween.dur),e=ease(k);camera.position.lerpVectors(tween.p0,tween.p1,e);controls.target.lerpVectors(tween.t0,tween.t1,e);if(k>=1)tween=null}
+  else if(tourId){const a=dt*.025;const o=camera.position.clone().sub(controls.target);o.applyAxisAngle(Y,a);camera.position.copy(controls.target).add(o)}
+  controls.update();
+  sky.position.copy(camera.position);stars.position.copy(camera.position);
+  updateCars(dt);applyMode(now);
+  composer.render();
+  updateLabels(W,H);
+}
+requestAnimationFrame(frame);
+setTimeout(()=>$('#loading').classList.add('done'),150);
+window.__ready=true;window.__fly=k=>flyTo(k,10);
+</script>
+
+</body>
+</html>

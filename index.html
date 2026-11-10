@@ -76,7 +76,7 @@ p{margin:0}
   .hero-grid .stage{order:-1}.copy{padding-top:0}
   .ui.tl{flex-direction:column;align-items:flex-start;gap:8px}
   .seg.views{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}.seg.views::-webkit-scrollbar{display:none}
-  .caption{bottom:56px}.tag.minor{display:none}}
+  .caption{bottom:calc(7% + 10px);padding:12px 14px}.caption h3{font-size:16px}.caption p{font-size:12.5px}.tag.minor{display:none}}
 .rotate-tip{display:none}
 @media (orientation:landscape) and (max-height:500px) and (pointer:coarse){.rotate-tip{display:flex;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(5,11,20,.94);color:var(--fg);font-size:15px;text-align:center;padding:24px}
   .rotate-tip button{border:1px solid var(--rule-2);background:transparent;border-radius:999px;padding:6px 16px;font-size:13px}}
@@ -109,15 +109,35 @@ p{margin:0}
 .tag:hover span{background:rgba(10,25,45,.92)}
 .tag.minor span{font-weight:500;font-size:11.5px;padding:3px 8px}
 .tag.hide{opacity:0;pointer-events:none}
-.caption{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);z-index:5;width:min(560px,calc(100% - 32px));padding:14px 18px;border-radius:12px;background:rgba(5,11,20,.78);border:1px solid var(--rule-2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.caption{position:absolute;left:16px;bottom:calc(7% + 14px);z-index:5;width:min(400px,calc(100% - 32px));padding:12px 16px;border-radius:12px;background:rgba(5,11,20,.78);border:1px solid var(--rule-2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .caption .k{font:500 11px/1 var(--mono);color:var(--signal);letter-spacing:.14em}
-.caption h3{font:700 18px/1.4 var(--display);margin-top:6px}
-.caption p{font-size:13.5px;color:#c6d4e0;margin-top:4px}
+.caption h3{font:700 17px/1.4 var(--display);margin-top:6px}
+.caption p{font-size:13px;line-height:1.6;color:#c6d4e0;margin-top:4px}
 .caption .bar{height:2px;background:var(--rule);border-radius:2px;margin-top:10px;overflow:hidden}
 .caption .bar i{display:block;height:100%;width:0;background:var(--signal)}
 .caption .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 .caption .row button{border:0;background:none;color:var(--muted);font-size:12.5px;padding:2px 0}
 .caption .row button:hover{color:var(--fg)}
+.caption{opacity:0;transform:translateY(8px);transition:opacity .6s,transform .6s}
+.caption.show{opacity:1;transform:none}
+.caption .ctl{display:flex;gap:4px;align-items:center}
+.caption .ctl button{min-width:30px;padding:4px 8px;border-radius:999px}
+.caption .ctl button{white-space:nowrap}
+@media (max-width:520px){.dots button{width:8px}.dots button.on{width:16px}.caption .ctl button{min-width:26px;padding:4px 6px}}
+.caption .ctl button:hover{background:var(--deck-2)}
+.dots{display:flex;gap:5px}
+.dots button{width:12px;height:4px;padding:0;border:0;border-radius:2px;background:var(--rule-2)}
+.dots button.done{background:color-mix(in srgb,var(--signal) 55%,transparent)}
+.dots button.on{background:var(--signal);width:22px}
+/* cinematic mode */
+.stage::before,.stage::after{content:"";position:absolute;left:0;right:0;height:0;background:#000;z-index:4;transition:height .9s ease;pointer-events:none}
+.stage::before{top:0}.stage::after{bottom:0}
+.stage.touring::before,.stage.touring::after{height:7%}
+.stage.touring .ui,.stage.touring .labels,.stage.touring .hint{opacity:0;pointer-events:none;transition:opacity .6s}
+.stage.touring .ui.bl{opacity:1;pointer-events:auto}
+.stage.touring .ui.bl{bottom:auto;top:calc(7% + 10px)}
+.stage.tour-paused .labels{opacity:1;pointer-events:auto}
+.stage .ui,.stage .labels{transition:opacity .6s}
 .ui .icon-btn{display:inline-flex;align-items:center;gap:6px}
 
 /* sections */
@@ -251,7 +271,7 @@ dialog button{border:1px solid var(--rule-2);background:var(--deck);border-radiu
         <h3 id="capT"></h3>
         <p id="capP"></p>
         <div class="bar"><i id="capBar"></i></div>
-        <div class="row"><span class="kicker" style="font-size:10px" id="capMode"></span><button type="button" id="skipBtn">退出漫游 ✕</button></div>
+        <div class="row"><div class="dots" id="capDots"></div><div class="ctl"><button type="button" id="prevBtn" aria-label="上一段">‹</button><button type="button" id="pauseBtn">❚❚ 暂停</button><button type="button" id="nextBtn" aria-label="下一段">›</button><button type="button" id="skipBtn">退出 ✕</button></div></div>
       </div>
       <div class="loading" id="loading"><div>
         <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><circle cx="28" cy="28" r="24" stroke="rgba(98,214,255,.25)" stroke-width="1.5"/><path d="M28 4a24 24 0 0 1 24 24" stroke="#62d6ff" stroke-width="1.5"/><circle cx="52" cy="28" r="3" fill="#62d6ff"/></svg>
@@ -810,7 +830,7 @@ const cur=JSON.parse(JSON.stringify({}));
 function cloneMode(m){const o={};for(const k in m)o[k]=m[k].clone?m[k].clone():m[k];return o}
 let state=cloneMode(MODES.dusk),from=null,to=null,mt=1;
 const allStd=[];scene.traverse(o=>{if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m.isMeshStandardMaterial&&!allStd.includes(m)){m.userData.env=m.envMapIntensity;allStd.push(m)}})}});
-let modeT0=0;function setMode(name){from=cloneMode(state);to=MODES[name];mt=0;modeT0=performance.now();document.querySelectorAll('.seg.time button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===name));curMode=name}
+let modeT0=0,modeDur=1600;function setMode(name,dur=1600){if(name===curMode&&mt>=1)return;from=cloneMode(state);to=MODES[name];mt=0;modeDur=dur;modeT0=performance.now();document.querySelectorAll('.seg.time button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===name));curMode=name}
 let curMode='dusk';
 function lerpMode(a,b,t){for(const k in b){if(b[k].isColor)state[k].copy(a[k]).lerp(b[k],t);else if(b[k].isVector3)state[k].copy(a[k]).lerp(b[k],t).normalize();else state[k]=a[k]+(b[k]-a[k])*t}}
 function applyMode(time){
@@ -875,34 +895,60 @@ let tween=null;
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 function flyTo(key,dur=2400){const V=VIEWS[key];if(!V)return;tween={p0:camera.position.clone(),t0:controls.target.clone(),p1:new V3(...V.p),t1:new V3(...V.t),start:performance.now(),dur};
   document.querySelectorAll('.seg.views button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===key))}
-function goView(key){stopTour();flyTo(key)}
+function goView(key){if(tour)stopTour();flyTo(key)}
 document.querySelectorAll('.seg.views button').forEach(b=>b.addEventListener('click',()=>goView(b.dataset.view)));
 document.querySelectorAll('.seg.time button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
 const rotBtn=$('#rotBtn');rotBtn.onclick=()=>{controls.autoRotate=!controls.autoRotate;rotBtn.setAttribute('aria-pressed',controls.autoRotate)};
 $('#fsBtn').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():stage.requestFullscreen?.().catch(()=>{})}catch(e){}};
 document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>{const g=b.dataset.goto;stage.scrollIntoView({behavior:'smooth',block:'center'});if(g==='museum-night'){setMode('night');goView('museum')}else goView(g)}));
 
-// ---------- guided tour ----------
+// ---------- guided tour (cinematic shots) ----------
+// Each shot: a fly-in along a raised arc to its start pose, then one continuous camera move (orbit / truck / dolly / crane).
+const orbit=(c,r,h,a0,a1,ty=c.y)=>u=>{const a=a0+(a1-a0)*u;return{p:new V3(c.x+Math.sin(a)*r,h,c.z+Math.cos(a)*r),t:new V3(c.x,ty,c.z)}};
+const line=(p0,p1,t0,t1)=>u=>({p:new V3(...p0).lerp(new V3(...p1),u),t:new V3(...t0).lerp(new V3(...t1),u)});
+const SH=[SPH.x,SPH.y,SPH.z];
 const TOUR=[
-  {v:'overview',m:'day',k:'起步区',t:'三亚中科遥感信息产业园',p:'西侧星宇空间、东侧太空科技馆，北面是科研办公用地与卫星地面站，南临海榆西线。'},
-  {v:'xingyu',m:'day',k:'星宇空间',t:'四栋板式高层，宙中的「星座」',p:'北楼 15 层，南楼 10 层逐层退台；占地 22.7 亩，总建筑面积约 6.5 万㎡。'},
-  {v:'street',m:'dusk',k:'街景',t:'海榆西线街景',p:'沿街为商业裙房与椰林步道，南距海岸约 500 米。'},
-  {v:'museum',m:'dusk',k:'太空科技馆',t:'莫比乌斯环连起两座建筑',p:'大跨度悬挑连廊在三层与两座建筑的顶部和底部相连，下方形成架空广场。'},
-  {v:'stars',m:'night',k:'七星伴月',t:'七座雷达罩环绕玻璃球体',p:'地面站的七座白色雷达罩在夜色中依次点亮，簇拥最大的球体。'},
-  {v:'plaza',m:'night',k:'科技馆广场',t:'玻璃球体夜景',p:'太空科技体验中心的三角网格玻璃球整体发光，环带灯光如银河环绕。'},
+  {m:'day',k:'起步区',t:'三亚中科遥感信息产业园',p:'西侧星宇空间、东侧太空科技馆，北面是科研办公用地与卫星地面站，南临海榆西线。',d:10,f:orbit(new V3(-10,10,-30),640,290,.25,.7)},
+  {m:'day',k:'星宇空间',t:'四栋板式高层，宙中的「星座」',p:'北楼 15 层，南楼 10 层逐层退台；占地 22.7 亩，总建筑面积约 6.5 万㎡。',d:10,f:line([-275,64,150],[10,92,160],[-170,26,0],[-100,30,-6])},
+  {m:'day',k:'屋顶花园',t:'退台上的屋顶花园',p:'南楼逐层后退形成 3 层退台，屋面铺设绿化与太阳能光伏。',d:9,f:orbit(new V3(-129,30,10),120,95,-.55,.55)},
+  {m:'dusk',k:'海榆西线',t:'沿街椰林与商业裙房',p:'人视角沿海榆西线西行，底层商业连廊在黄昏亮起，向南约 500 米即是海岸。',d:12,f:line([70,3.4,ROAD_Z+9],[-150,3.4,ROAD_Z+9],[-30,20,0],[-210,24,-4])},
+  {m:'dusk',k:'太空科技馆',t:'莫比乌斯环连起两座建筑',p:'大跨度悬挑连廊在三层与两座建筑的顶部和底部相连，下方形成架空广场。',d:12,f:orbit(new V3(MC.x+6,12,MC.z),200,64,1.25,-.25)},
+  {m:'night',k:'七星伴月',t:'七座雷达罩依次点亮',p:'地面站的七座白色雷达罩在夜色中依次亮起，簇拥园区最大的球体。',d:10,f:line([150,42,30],[262,52,22],[290,12,-130],[380,12,-200])},
+  {m:'night',k:'玻璃球体',t:'太空科技体验中心',p:'三角网格玻璃球整体发光，莫比乌斯环的灯带像银河一样环绕。',d:10,f:line([SH[0]+70,SH[1]+12,SH[2]+120],[SH[0]+34,SH[1]+3,SH[2]+62],SH,[SH[0]-6,SH[1]+2,SH[2]])},
+  {m:'night',k:'夜景全貌',t:'起步区夜景',p:'从科技馆拉升到全园鸟瞰，海榆西线车流与园区灯光连成一片。',d:11,f:line([MC.x+40,38,MC.z+120],[300,360,660],[MC.x,10,MC.z],[-10,6,-40])},
 ];
-let tourId=0;const cap=$('#caption');
-function stopTour(){if(!tourId)return;tourId=0;cap.hidden=true;$('#tourBtn').setAttribute('aria-pressed','false');$('#tourBtn').textContent='▶ 漫游'}
-async function runTour(){stopTour();const id=++tourSeq;tourId=id;controls.autoRotate=false;rotBtn.setAttribute('aria-pressed','false');cap.hidden=false;$('#tourBtn').setAttribute('aria-pressed','true');$('#tourBtn').textContent='■ 停止';
-  for(let i=0;i<TOUR.length;i++){if(tourId!==id)return;const s=TOUR[i];setMode(s.m);flyTo(s.v,2600);
-    $('#capK').textContent=`${String(i+1).padStart(2,'0')} / ${String(TOUR.length).padStart(2,'0')} · ${s.k}`;$('#capT').textContent=s.t;$('#capP').textContent=s.p;$('#capMode').textContent={day:'日景',dusk:'黄昏',night:'夜景'}[s.m];
-    const t0=performance.now(),D=7200;await new Promise(res=>{const step=()=>{if(tourId!==id)return res();const k=(performance.now()-t0)/D;$('#capBar').style.width=Math.min(100,k*100)+'%';k>=1?res():requestAnimationFrame(step)};step()})}
-  if(tourId===id){stopTour();flyTo('overview')}}
-let tourSeq=0;
-$('#tourBtn').onclick=()=>tourId?stopTour():runTour();
-$('#tourBtn2').onclick=()=>{stage.scrollIntoView({behavior:'smooth',block:'center'});runTour()};
+const cap=$('#caption'),tourBtn=$('#tourBtn');
+const dots=$('#capDots');TOUR.forEach((_,i)=>{const d=document.createElement('button');d.type='button';d.setAttribute('aria-label',`第 ${i+1} 段`);d.onclick=()=>gotoShot(i);dots.appendChild(d)});
+let tour=null; // {i, phase:'fly'|'glide', time, dur, p0,t0, paused}
+const smooth=t=>t*t*(3-2*t), sine=t=>.5-.5*Math.cos(Math.PI*t);
+function setCaption(i){const s=TOUR[i];cap.classList.remove('show');void cap.offsetWidth;
+  $('#capK').textContent=`${String(i+1).padStart(2,'0')} / ${String(TOUR.length).padStart(2,'0')} · ${s.k} · ${{day:'日景',dusk:'黄昏',night:'夜景'}[s.m]}`;$('#capT').textContent=s.t;$('#capP').textContent=s.p;
+  [...dots.children].forEach((d,k)=>d.className=k<i?'done':k===i?'on':'');cap.classList.add('show')}
+function gotoShot(i){if(i>=TOUR.length){endTour(true);return}if(i<0)i=0;
+  if(!tour)startTour(i);
+  const s=TOUR[i],A=s.f(0),dist=camera.position.distanceTo(A.p);
+  Object.assign(tour,{i,phase:'fly',time:0,dur:Math.min(4.6,Math.max(2.4,dist/150)),p0:camera.position.clone(),t0:controls.target.clone(),lift:Math.min(140,dist*.22)});
+  setMode(s.m,2600);setCaption(i);tween=null;setPaused(false)}
+function startTour(i=0){tour={i};controls.autoRotate=false;rotBtn.setAttribute('aria-pressed','false');stage.classList.add('touring');cap.hidden=false;tourBtn.setAttribute('aria-pressed','true');tourBtn.textContent='■ 停止漫游'}
+function endTour(toOverview){if(!tour)return;tour=null;stage.classList.remove('touring');cap.hidden=true;tourBtn.setAttribute('aria-pressed','false');tourBtn.textContent='▶ 漫游';if(toOverview)flyTo('overview',3200)}
+function setPaused(v){if(!tour)return;tour.paused=v;$('#pauseBtn').textContent=v?'▶ 继续':'❚❚ 暂停';stage.classList.toggle('tour-paused',v)}
+function runTour(){gotoShot(0)}
+function stopTour(){endTour(false)}
+function stepTour(dt){
+  if(!tour||tour.paused)return;tour.time+=dt;const s=TOUR[tour.i];
+  if(tour.phase==='fly'){const k=Math.min(1,tour.time/tour.dur),e=smooth(smooth(k));const A=s.f(0);
+    camera.position.lerpVectors(tour.p0,A.p,e);camera.position.y+=Math.sin(Math.PI*e)*tour.lift;controls.target.lerpVectors(tour.t0,A.t,smooth(k));
+    $('#capBar').style.width='0%';if(k>=1){tour.phase='glide';tour.time=0}}
+  else{const k=Math.min(1,tour.time/s.d),P=s.f(sine(k));camera.position.copy(P.p);controls.target.copy(P.t);$('#capBar').style.width=(k*100)+'%';if(k>=1)gotoShot(tour.i+1)}
+}
+tourBtn.onclick=()=>tour?stopTour():runTour();
+$('#tourBtn2').onclick=()=>{stage.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(runTour,400)};
 $('#skipBtn').onclick=stopTour;
-controls.addEventListener('start',()=>{tween=null});
+$('#pauseBtn').onclick=()=>{if(!tour)return;if(tour.paused&&tour.phase==='glide'){const s=TOUR[tour.i];const k=Math.min(1,tour.time/s.d);const P=s.f(sine(k));
+  if(camera.position.distanceTo(P.p)>2){const t=tour.time;gotoShot(tour.i);tour.resumeAt=t;return}}setPaused(!tour.paused)};
+$('#prevBtn').onclick=()=>tour&&gotoShot(tour.i-1);$('#nextBtn').onclick=()=>tour&&gotoShot(tour.i+1);
+controls.addEventListener('start',()=>{tween=null;if(tour&&!tour.paused)setPaused(true)});
+document.addEventListener('keydown',e=>{if(!tour)return;if(e.key==='Escape')stopTour();if(e.key==='ArrowRight')gotoShot(tour.i+1);if(e.key==='ArrowLeft')gotoShot(tour.i-1);if(e.key===' '&&document.activeElement===document.body){e.preventDefault();$('#pauseBtn').click()}});
 
 // ---------- loop ----------
 let W=1,H=1;
@@ -914,11 +960,11 @@ setMode('dusk');mt=1;state=cloneMode(MODES.dusk);
 flyTo('overview',10);
 function frame(now){
   requestAnimationFrame(frame);
-  const dt=Math.min(.05,(now-last)/1000);last=now;
+  const rawDt=(now-last)/1000,dt=Math.min(.05,rawDt);last=now;
   if(!visible||document.hidden)return;
-  if(mt<1){mt=Math.min(1,(now-modeT0)/1600);lerpMode(from,to,ease(mt))}
+  if(mt<1){mt=Math.min(1,(now-modeT0)/modeDur);lerpMode(from,to,ease(mt))}
   if(tween){const k=Math.min(1,(now-tween.start)/tween.dur),e=ease(k);camera.position.lerpVectors(tween.p0,tween.p1,e);controls.target.lerpVectors(tween.t0,tween.t1,e);if(k>=1)tween=null}
-  else if(tourId){const a=dt*.025;const o=camera.position.clone().sub(controls.target);o.applyAxisAngle(Y,a);camera.position.copy(controls.target).add(o)}
+  if(tour)stepTour(Math.min(.1,rawDt));
   controls.update();
   sky.position.copy(camera.position);stars.position.copy(camera.position);
   updateCars(dt);applyMode(now);
